@@ -1,0 +1,12 @@
+# Ignorar TODO
+*
+
+# Pero permitir carpetas
+!*/
+
+# Permitir archivos de código C/C++
+!*.cc
+!*.h
+
+# Permitir el propio .gitignore
+!.gitignore

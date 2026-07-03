@@ -1,15 +1,16 @@
-//? Make transform matrix getter function and assign world points to ship
+//? Check if pivot point is at the right position and move the ship
 
 #include "ship.h"
 
 #include <stdlib.h>
 
+#include <esat\draw.h>
 #include <esat\math.h>
 
 #include "game_utils.h"
+#include "config.h"
 
-esat::Vec2* g_ship_base_points = nullptr;
-esat::Vec2* g_ship_cannon_points = nullptr;
+esat::Vec2 *g_ship_base_points = nullptr, *g_ship_cannon_points = nullptr, debug_pivot[16];
 
 struct SHP::TShip{
     esat::Vec2 *base_world_points, *cannon_world_points;
@@ -34,32 +35,67 @@ static void AssignCannonPoints(){
 
 static void InitShipLocalPoints(){
     const unsigned char base_vertices = 5, cannon_vertices = 6;
+
     g_ship_base_points = (esat::Vec2*)malloc(sizeof(esat::Vec2) * base_vertices);
     g_ship_cannon_points = (esat::Vec2*)malloc(sizeof(esat::Vec2) * cannon_vertices);
     AssignBasePoints();
     AssignCannonPoints();
-    UTL::DebugPoints("BASE LOCAL POINTS", g_ship_base_points, base_vertices);
-    UTL::DebugPoints("CANNON LOCAL POINTS", g_ship_cannon_points, cannon_vertices);
     UTL::NormalizePoints(g_ship_base_points, base_vertices);
     UTL::NormalizePoints(g_ship_cannon_points, cannon_vertices);
-    UTL::DebugPoints("BASE NORMALIZED POINTS", g_ship_base_points, base_vertices);
-    UTL::DebugPoints("CANNON NORMALIZED POINTS", g_ship_cannon_points, cannon_vertices);
 }
 
-static void InitShipWorldPoints(SHP::TShip* ship){
+static void InitShipWorldPoints(SHP::TShip* const ship){
     const unsigned char base_vertices = 5, cannon_vertices = 6;
+
     (*ship).base_world_points = (esat::Vec2*)malloc(sizeof(esat::Vec2) * base_vertices);
     (*ship).cannon_world_points = (esat::Vec2*)malloc(sizeof(esat::Vec2) * cannon_vertices);
+    UTL::TransformWorldPoints((*ship).base_world_points, g_ship_base_points, base_vertices, 27.5f, CFG::kScreenX/2, CFG::kScreenY/2);
+    UTL::TransformWorldPoints((*ship).cannon_world_points, g_ship_cannon_points, cannon_vertices, 27.5f, CFG::kScreenX/2, CFG::kScreenY/2);
 }
 
-void SHP::Init(SHP::TShip* ship){
+void SHP::Init(SHP::TShip** ship){
     InitShipLocalPoints();
-    ship = (SHP::TShip*)malloc(sizeof(SHP::TShip));
-    InitShipWorldPoints(ship);
+    *ship = (SHP::TShip*)malloc(sizeof(SHP::TShip));
+    InitShipWorldPoints(*ship);
+    UTL::InitCircle(debug_pivot, 16);
+    UTL::TransformWorldPoints(debug_pivot, debug_pivot, 16, 3.5f, CFG::kScreenX/2, CFG::kScreenY/2);
 }
 
+void SHP::GetInput(){
 
+}
 
+void SHP::Update(){
+
+}
+
+static void DrawBase(esat::Vec2* const base_points){
+    const unsigned char base_vertices = 5;
+
+    esat::DrawSetFillColor(0,0,0,0);
+    esat::DrawSolidPath(&((*base_points).x), base_vertices);
+}
+
+static void DrawCannon(const esat::Vec2* const cannon_points){
+    const unsigned char cannon_vertices = 6;
+
+    for(int i = 0; i < cannon_vertices / 2 - 1; ++i)
+        esat::DrawLine((*(cannon_points + i)).x, (*(cannon_points + i)).y, (*(cannon_points + i + 1)).x, (*(cannon_points + i + 1)).y);
+    for(int i = cannon_vertices / 2; i < cannon_vertices - 1; ++i)
+        esat::DrawLine((*(cannon_points + i)).x, (*(cannon_points + i)).y, (*(cannon_points + i + 1)).x, (*(cannon_points + i + 1)).y);
+}
+
+static void DebugPivot(){
+    esat::DrawSetFillColor(0, 255, 0);
+    esat::DrawSolidPath(&debug_pivot->x, 16);
+}
+
+void SHP::Draw(const SHP::TShip* const ship){
+    esat::DrawSetStrokeColor(0, 0, 255);
+    DrawBase((*ship).base_world_points);
+    DrawCannon((*ship).cannon_world_points);
+    DebugPivot();
+}
 
 void SHP::Free(SHP::TShip* ship){
     free(g_ship_base_points);

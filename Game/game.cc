@@ -5,7 +5,7 @@
 SHP::TShip* g_ship = nullptr;
 
 void GAME::Init(){
-    SHP::Init(g_ship);
+    SHP::Init(&g_ship);
 }
 
 void GAME::GetInput(){
@@ -17,7 +17,7 @@ void GAME::Update(){
 }
 
 void GAME::Draw(){
-    SHP::Draw();
+    SHP::Draw(g_ship);
 }
 
 void GAME::Free(){

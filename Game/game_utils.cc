@@ -14,8 +14,8 @@ static float GetAbsoluteValue(float number){
 static float FindBiggestComponent(esat::Vec2* points, int num_of_points){
     float biggest_component = FLT_MIN;
     for(int i = 0; i < num_of_points; ++i){
-        if(GetAbsoluteValue((*(points + i)).x) > biggest_component) biggest_component = (*(points + i)).x;
-        if(GetAbsoluteValue((*(points + i)).y) > biggest_component) biggest_component = (*(points + i)).y;
+        if(GetAbsoluteValue((*(points + i)).x) > biggest_component) biggest_component = GetAbsoluteValue((*(points + i)).x);
+        if(GetAbsoluteValue((*(points + i)).y) > biggest_component) biggest_component = GetAbsoluteValue((*(points + i)).y);
     }
 
     return biggest_component;
@@ -42,24 +42,25 @@ void UTL::DebugPoints(const char* const debug_header, esat::Vec2* points, int nu
     printf("\n");
 }
 
-static esat::Mat3 GetTransformationMatrix(float scale, float translate_x, float translate_y){
+static float AngleToRadians(float angle){
+    return angle * M_PI / 180;
+}
+
+static esat::Mat3 GetTransformationMatrix(float scale, float angle, esat::Vec2 translate){
     esat::Mat3 tmp = esat::Mat3Identity();
 
     tmp = esat::Mat3Multiply(esat::Mat3Scale(scale, scale), tmp);
-    tmp = esat::Mat3Multiply(esat::Mat3Translate(translate_x, translate_y), tmp);
+    tmp = esat::Mat3Multiply(esat::Mat3Rotate(AngleToRadians(angle)), tmp);
+    tmp = esat::Mat3Multiply(esat::Mat3Translate(translate.x, translate.y), tmp);
 
     return tmp;
 }
 
-void UTL::TransformWorldPoints(esat::Vec2* const world_points, const esat::Vec2* const local_points, const int num_of_points, float scale, float translate_x, float translate_y){
-    esat::Mat3 transf_matrix = GetTransformationMatrix(scale, translate_x, translate_y);
+void UTL::TransformWorldPoints(esat::Vec2* const world_points, const esat::Vec2* const local_points, const int num_of_points, float scale, float angle, esat::Vec2 translate){
+    esat::Mat3 transf_matrix = GetTransformationMatrix(scale, angle, translate);
 
     for(int i = 0; i < num_of_points; ++i)
         *(world_points + i) = esat::Mat3TransformVec2(transf_matrix, *(local_points + i));
-}
-
-static float AngleToRadians(float angle){
-    return angle * M_PI / 180;
 }
 
 void UTL::InitCircle(esat::Vec2 *circle, int num_of_points){

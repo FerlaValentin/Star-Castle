@@ -9,11 +9,11 @@ void GAME::Init(){
 }
 
 void GAME::GetInput(){
-    SHP::GetInput();
+    SHP::GetInput(g_ship);
 }
 
-void GAME::Update(){
-    SHP::Update();
+void GAME::Update(const double* const dt){
+    SHP::Update(g_ship, dt);
 }
 
 void GAME::Draw(){

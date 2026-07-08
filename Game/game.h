@@ -4,7 +4,7 @@
 namespace GAME{
     void Init();
     void GetInput();
-    void Update();
+    void Update(const double* const dt);
     void Draw();
     void Free();
 }

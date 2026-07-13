@@ -8,5 +8,9 @@
 !*.cc
 !*.h
 
+# Permitir compilacion.bat
+!*.bat
+
 # Permitir el propio .gitignore
 !.gitignore
+

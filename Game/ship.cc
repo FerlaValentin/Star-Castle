@@ -11,7 +11,7 @@
 #include "game_utils.h"
 #include "config.h"
 
-esat::Vec2 *g_ship_base_points = nullptr, *g_ship_cannon_points = nullptr, *g_ship_flame_points, debug_pivot[16], debug_local_pivot[16];
+esat::Vec2 *g_ship_base_points = nullptr, *g_ship_cannon_points = nullptr, *g_ship_flame_points = nullptr, debug_pivot[16], debug_local_pivot[16];
 
 struct SHP::TShip{
     bool is_propelling, is_rotating_right, is_rotating_left;
@@ -93,8 +93,9 @@ static void TransformShipWorldPoints(SHP::TShip* const ship, bool is_ship_propel
     UTL::TransformWorldPoints((*ship).base_world_points, g_ship_base_points, base_vertices, ship_scale, (*ship).rotation, (*ship).position);
     UTL::TransformWorldPoints((*ship).cannon_world_points, g_ship_cannon_points, cannon_vertices, ship_scale, (*ship).rotation, (*ship).position);
     if(is_ship_propelling){
-        const float flames_scale = ship_scale * (*ship).flames_current_frame;
-        const esat::Vec2 flames_position = {(*ship).position.x - (*ship).forward.x * ship_scale * ((*ship).flames_current_frame - 1), (*ship).position.y - (*ship).forward.y * ship_scale * ((*ship).flames_current_frame - 1)};
+        const unsigned char flames_scale = 27.5f * (*ship).flames_current_frame;
+        const float flames_displacement = ((*ship).flames_current_frame - 1) / 25;
+        const esat::Vec2 flames_position = {(*ship).position.x - (*ship).forward.x * flames_displacement, (*ship).position.y - (*ship).forward.y * flames_displacement};
 
         UTL::TransformWorldPoints((*ship).flames_world_points, g_ship_flame_points, flames_vertices, flames_scale, (*ship).rotation, flames_position);
     }  
@@ -131,7 +132,7 @@ static void Rotate(SHP::TShip* const ship, const double* const dt){
 }
 
 static void UpdateFlamesAnimation(SHP::TShip* const ship, const double* const dt){
-    const float frame_change_timestamp = 0.5f;
+    const float frame_change_timestamp = 0.125f;
     static float timer = 0.0f;
 
     if((*ship).is_propelling){

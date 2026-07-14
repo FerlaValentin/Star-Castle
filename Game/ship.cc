@@ -2,7 +2,9 @@
 
 #include "ship.h"
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include <esat\draw.h>
 #include <esat\math.h>
@@ -11,13 +13,14 @@
 #include "game_utils.h"
 #include "config.h"
 
+bool debug = true;
 esat::Vec2 *g_ship_base_points = nullptr, *g_ship_cannon_points = nullptr, *g_ship_flame_points = nullptr, debug_pivot[16], debug_local_pivot[16];
 
 struct SHP::TShip{
     bool is_propelling, is_rotating_right, is_rotating_left;
     unsigned char flames_current_frame;
     float rotation;
-    esat::Vec2 position, forward, *base_world_points, *cannon_world_points, *flames_world_points;
+    esat::Vec2 position, forward, speed, *base_world_points, *cannon_world_points, *flames_world_points;
 };
 
 static void InitShip(SHP::TShip** ship){
@@ -29,10 +32,10 @@ static void InitShip(SHP::TShip** ship){
     (**ship).rotation = 0.0f;
     (**ship).position = {CFG::kScreenX/2, CFG::kScreenY/2};
     (**ship).forward = {-1, 0};
+    (**ship).speed = {0, 0};
     (**ship).base_world_points = (esat::Vec2*)malloc(sizeof(esat::Vec2) * 5);
     (**ship).cannon_world_points = (esat::Vec2*)malloc(sizeof(esat::Vec2) * 6);
     (**ship).flames_world_points = (esat::Vec2*)malloc(sizeof(esat::Vec2) * 17);
-
 }
 
 static void AssignBasePoints(){
@@ -86,15 +89,15 @@ static void InitShipLocalPoints(){
     UTL::NormalizePoints(g_ship_flame_points, flames_vertices);
 }
 
-static void TransformShipWorldPoints(SHP::TShip* const ship, bool is_ship_propelling){
+static void TransformShipWorldPoints(SHP::TShip* const ship){
     const unsigned char base_vertices = 5, cannon_vertices = 6, flames_vertices = 17;
     const float ship_scale = 27.5f;
 
     UTL::TransformWorldPoints((*ship).base_world_points, g_ship_base_points, base_vertices, ship_scale, (*ship).rotation, (*ship).position);
     UTL::TransformWorldPoints((*ship).cannon_world_points, g_ship_cannon_points, cannon_vertices, ship_scale, (*ship).rotation, (*ship).position);
-    if(is_ship_propelling){
-        const unsigned char flames_scale = 27.5f * (*ship).flames_current_frame;
-        const float flames_displacement = ((*ship).flames_current_frame - 1) / 25;
+    if((*ship).is_propelling){
+        const unsigned char flames_scale = 25 * (*ship).flames_current_frame;
+        const float flames_displacement = ((*ship).flames_current_frame - 1) / 37.5f;
         const esat::Vec2 flames_position = {(*ship).position.x - (*ship).forward.x * flames_displacement, (*ship).position.y - (*ship).forward.y * flames_displacement};
 
         UTL::TransformWorldPoints((*ship).flames_world_points, g_ship_flame_points, flames_vertices, flames_scale, (*ship).rotation, flames_position);
@@ -106,7 +109,7 @@ void SHP::Init(SHP::TShip** ship){
     InitShip(ship);
     InitShipLocalPoints();
     UTL::InitCircle(debug_local_pivot, 16);
-    TransformShipWorldPoints(*ship, (**ship).is_propelling);
+    TransformShipWorldPoints(*ship);
 }
 
 void SHP::GetInput(SHP::TShip* const ship){
@@ -115,12 +118,26 @@ void SHP::GetInput(SHP::TShip* const ship){
     (*ship).is_rotating_right = esat::IsSpecialKeyPressed(esat::SpecialKey::kSpecialKey_Right);
 }
 
-static void Propel(SHP::TShip* const ship, const double* const dt){
-    const unsigned char propelling_speed = 50;
+static void UpdateForward(SHP::TShip* const ship){
+    if((*ship).is_propelling)   (*ship).forward = {-cosf(UTL::AngleToRadians((*ship).rotation)), -sinf(UTL::AngleToRadians((*ship).rotation))};
+}
 
+static void Thrust(SHP::TShip* const ship, const double* const dt){
+    const unsigned char acceleration = 100;
     if((*ship).is_propelling){
-        (*ship).position.x += (*ship).forward.x * propelling_speed * (*dt);
-        (*ship).position.y += (*ship).forward.y * propelling_speed * (*dt);
+        (*ship).speed.x += (*ship).forward.x * acceleration * (*dt);
+        (*ship).speed.y += (*ship).forward.y * acceleration * (*dt);
+    }
+    else{
+        (*ship).speed.x -= (*ship).forward.x * acceleration * (*dt);
+        (*ship).speed.y -= (*ship).forward.y * acceleration * (*dt);
+    }
+}
+
+static void Move(SHP::TShip* const ship, const double* const dt){
+    if(UTL::GetMagnitude(&(*ship).speed) > 0.0f){
+        (*ship).position.x += (*ship).speed.x * (*dt);
+        (*ship).position.y += (*ship).speed.y * (*dt);
     }
 }
 
@@ -144,10 +161,12 @@ static void UpdateFlamesAnimation(SHP::TShip* const ship, const double* const dt
 }
 
 void SHP::Update(SHP::TShip* const ship, const double* const dt){
-    Propel(ship, dt);
+    UpdateForward(ship);
+    Thrust(ship, dt);
+    Move(ship, dt);
     Rotate(ship, dt);
     UpdateFlamesAnimation(ship, dt);
-    if((*ship).is_propelling || (*ship).is_rotating_left || (*ship).is_rotating_right) TransformShipWorldPoints(ship, (*ship).is_propelling); 
+    if(UTL::GetMagnitude(&(*ship).speed) > 0.0f || (*ship).is_rotating_left || (*ship).is_rotating_right) TransformShipWorldPoints(ship); 
 }
 
 static void DrawBase(esat::Vec2* const base_points){
@@ -166,15 +185,17 @@ static void DrawCannon(const esat::Vec2* const cannon_points){
         esat::DrawLine((*(cannon_points + i)).x, (*(cannon_points + i)).y, (*(cannon_points + i + 1)).x, (*(cannon_points + i + 1)).y);
 }
 
-static void DrawFlames(const esat::Vec2* const flames_points){
-    const unsigned char flame_vertices = 6, flames_vertices = 16;
+static void DrawFlames(const SHP::TShip* const ship){
+    if((*ship).is_propelling){
+        const unsigned char flame_vertices = 6, flames_vertices = 16;
 
-    for(int i = 0; i < flame_vertices; ++i)
-        esat::DrawLine((*(flames_points + i)).x, (*(flames_points + i)).y, (*(flames_points + i + 1)).x, (*(flames_points + i + 1)).y);
-    for(int i = flame_vertices + 1; i < flame_vertices * 2 + 1; ++i)
-        esat::DrawLine((*(flames_points + i)).x, (*(flames_points + i)).y, (*(flames_points + i + 1)).x, (*(flames_points + i + 1)).y);
-    for(int i = flame_vertices * 2 + 2; i < flames_vertices; ++i)
-        esat::DrawLine((*(flames_points + i)).x, (*(flames_points + i)).y, (*(flames_points + i + 1)).x, (*(flames_points + i + 1)).y);
+        for(int i = 0; i < flame_vertices; ++i)
+            esat::DrawLine((*((*ship).flames_world_points + i)).x, (*((*ship).flames_world_points + i)).y, (*((*ship).flames_world_points + i + 1)).x, (*((*ship).flames_world_points + i + 1)).y);
+        for(int i = flame_vertices + 1; i < flame_vertices * 2 + 1; ++i)
+            esat::DrawLine((*((*ship).flames_world_points + i)).x, (*((*ship).flames_world_points + i)).y, (*((*ship).flames_world_points + i + 1)).x, (*((*ship).flames_world_points + i + 1)).y);
+        for(int i = flame_vertices * 2 + 2; i < flames_vertices; ++i)
+            esat::DrawLine((*((*ship).flames_world_points + i)).x, (*((*ship).flames_world_points + i)).y, (*((*ship).flames_world_points + i + 1)).x, (*((*ship).flames_world_points + i + 1)).y);
+    }
 }
 
 static void DebugPivot(){
@@ -186,7 +207,7 @@ void SHP::Draw(const SHP::TShip* const ship){
     esat::DrawSetStrokeColor(0, 0, 255);
     DrawBase((*ship).base_world_points);
     DrawCannon((*ship).cannon_world_points);
-    DrawFlames((*ship).flames_world_points);
+    DrawFlames(ship);
     DebugPivot();
 }
 
@@ -195,5 +216,6 @@ void SHP::Free(SHP::TShip* ship){
     free(g_ship_cannon_points);
     free((*ship).base_world_points);
     free((*ship).cannon_world_points);
+    free((*ship).flames_world_points);
     free(ship);
 }

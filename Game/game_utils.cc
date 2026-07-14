@@ -42,7 +42,7 @@ void UTL::DebugPoints(const char* const debug_header, esat::Vec2* points, int nu
     printf("\n");
 }
 
-static float AngleToRadians(float angle){
+float UTL::AngleToRadians(float angle){
     return angle * M_PI / 180;
 }
 
@@ -50,7 +50,7 @@ static esat::Mat3 GetTransformationMatrix(float scale, float angle, esat::Vec2 t
     esat::Mat3 tmp = esat::Mat3Identity();
 
     tmp = esat::Mat3Multiply(esat::Mat3Scale(scale, scale), tmp);
-    tmp = esat::Mat3Multiply(esat::Mat3Rotate(AngleToRadians(angle)), tmp);
+    tmp = esat::Mat3Multiply(esat::Mat3Rotate(UTL::AngleToRadians(angle)), tmp);
     tmp = esat::Mat3Multiply(esat::Mat3Translate(translate.x, translate.y), tmp);
 
     return tmp;
@@ -66,6 +66,10 @@ void UTL::TransformWorldPoints(esat::Vec2* const world_points, const esat::Vec2*
 void UTL::InitCircle(esat::Vec2 *circle, int num_of_points){
     for(int i = 0; i < num_of_points; ++i){
         const float angle = 360 / num_of_points * i;
-        *(circle + i) = {cosf(AngleToRadians(angle)), sinf(AngleToRadians(angle))};
+        *(circle + i) = {cosf(UTL::AngleToRadians(angle)), sinf(UTL::AngleToRadians(angle))};
     }
+}
+
+float UTL::GetMagnitude(const esat::Vec2* const vec){
+    return sqrtf((*vec).x * (*vec).x + (*vec).y + (*vec).y);
 }

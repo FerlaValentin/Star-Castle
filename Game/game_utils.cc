@@ -73,3 +73,9 @@ void UTL::InitCircle(esat::Vec2 *circle, int num_of_points){
 float UTL::GetMagnitude(const esat::Vec2* const vec){
     return sqrtf((*vec).x * (*vec).x + (*vec).y + (*vec).y);
 }
+
+esat::Vec2 UTL::NormalizeVector(const esat::Vec2* const vec){
+    esat::Vec2 tmp = {(*vec).x / UTL::GetMagnitude(vec), (*vec).y / UTL::GetMagnitude(vec)};
+
+    return tmp;
+}

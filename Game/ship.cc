@@ -129,8 +129,13 @@ static void Thrust(SHP::TShip* const ship, const double* const dt){
         (*ship).speed.y += (*ship).forward.y * acceleration * (*dt);
     }
     else{
-        (*ship).speed.x -= (*ship).forward.x * acceleration * (*dt);
-        (*ship).speed.y -= (*ship).forward.y * acceleration * (*dt);
+        if(UTL::GetMagnitude(&(*ship).speed) - acceleration * (*dt) > 0.0f){
+            const esat::Vec2 norm_speed = UTL::NormalizeVector(&(*ship).speed);
+            (*ship).speed.x -= norm_speed.x * acceleration * (*dt);
+            (*ship).speed.y -= norm_speed.y * acceleration * (*dt);
+        }
+        else
+            (*ship).speed = {0.0f, 0.0f};
     }
 }
 

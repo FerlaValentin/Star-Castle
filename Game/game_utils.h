@@ -13,6 +13,7 @@ namespace UTL{
     void TransformWorldPoints(esat::Vec2* const world_points, const esat::Vec2* const local_points, int num_of_points, float scale, float angle, esat::Vec2 translate);
     void InitCircle(esat::Vec2 *circle, int num_of_points);
     float GetMagnitude(const esat::Vec2* const vec);
+    esat::Vec2 NormalizeVector(const esat::Vec2* const vec);
 }
 
 #endif

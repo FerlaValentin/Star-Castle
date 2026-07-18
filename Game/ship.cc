@@ -123,16 +123,17 @@ static void UpdateForward(SHP::TShip* const ship){
 }
 
 static void Thrust(SHP::TShip* const ship, const double* const dt){
-    const unsigned char acceleration = 100;
     if((*ship).is_propelling){
+        const unsigned char acceleration = 250;
         (*ship).speed.x += (*ship).forward.x * acceleration * (*dt);
         (*ship).speed.y += (*ship).forward.y * acceleration * (*dt);
     }
     else{
-        if(UTL::GetMagnitude(&(*ship).speed) - acceleration * (*dt) > 0.0f){
+        const unsigned char decceleration = 50;
+        if(UTL::GetMagnitude(&(*ship).speed) - decceleration * (*dt) > 0.0f){
             const esat::Vec2 norm_speed = UTL::NormalizeVector(&(*ship).speed);
-            (*ship).speed.x -= norm_speed.x * acceleration * (*dt);
-            (*ship).speed.y -= norm_speed.y * acceleration * (*dt);
+            (*ship).speed.x -= norm_speed.x * decceleration * (*dt);
+            (*ship).speed.y -= norm_speed.y * decceleration * (*dt);
         }
         else
             (*ship).speed = {0.0f, 0.0f};
@@ -165,13 +166,20 @@ static void UpdateFlamesAnimation(SHP::TShip* const ship, const double* const dt
         timer = 0.0f;
 }
 
+static void ScreenWrapShip(SHP::TShip* const ship){
+    UTL::ScreenWrapObject((*ship).base_world_points, 4);
+    UTL::ScreenWrapObject((*ship).cannon_world_points, 5);
+    UTL::ScreenWrapObject((*ship).flames_world_points, 16);
+}
+
 void SHP::Update(SHP::TShip* const ship, const double* const dt){
     UpdateForward(ship);
     Thrust(ship, dt);
     Move(ship, dt);
     Rotate(ship, dt);
     UpdateFlamesAnimation(ship, dt);
-    if(UTL::GetMagnitude(&(*ship).speed) > 0.0f || (*ship).is_rotating_left || (*ship).is_rotating_right) TransformShipWorldPoints(ship); 
+    if(UTL::GetMagnitude(&(*ship).speed) > 0.0f || (*ship).is_rotating_left || (*ship).is_rotating_right) TransformShipWorldPoints(ship);
+    ScreenWrapShip(ship);
 }
 
 static void DrawBase(esat::Vec2* const base_points){

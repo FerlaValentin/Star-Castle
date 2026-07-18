@@ -1,4 +1,4 @@
-//? Check if pivot point is at the right position and move the ship
+//? SHOOT
 
 #include "ship.h"
 
@@ -166,20 +166,25 @@ static void UpdateFlamesAnimation(SHP::TShip* const ship, const double* const dt
         timer = 0.0f;
 }
 
-static void ScreenWrapShip(SHP::TShip* const ship){
-    UTL::ScreenWrapObject((*ship).base_world_points, 4);
-    UTL::ScreenWrapObject((*ship).cannon_world_points, 5);
-    UTL::ScreenWrapObject((*ship).flames_world_points, 16);
+//! CHECKS IF THE MAGNITUDE RETURNS A NaN
+static void DebugSpeedMagnitude(SHP::TShip* const ship, const double* const dt){
+    if((*ship).is_propelling){
+        if(UTL::GetMagnitude(&(*ship).speed) != UTL::GetMagnitude(&(*ship).speed)){
+            printf("SHIP SPEED: [X] %f [Y] %f\n", (*ship).speed.x, (*ship).speed.y);
+            printf("SHIP SPEED MAGNITUDE: %f\n", UTL::GetMagnitude(&(*ship).speed));
+        }
+    }
 }
 
 void SHP::Update(SHP::TShip* const ship, const double* const dt){
     UpdateForward(ship);
     Thrust(ship, dt);
     Move(ship, dt);
+    DebugSpeedMagnitude(ship, dt);
     Rotate(ship, dt);
     UpdateFlamesAnimation(ship, dt);
+    UTL::ScreenWrapObject(&(*ship).position, 50);
     if(UTL::GetMagnitude(&(*ship).speed) > 0.0f || (*ship).is_rotating_left || (*ship).is_rotating_right) TransformShipWorldPoints(ship);
-    ScreenWrapShip(ship);
 }
 
 static void DrawBase(esat::Vec2* const base_points){

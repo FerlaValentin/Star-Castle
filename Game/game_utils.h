@@ -14,7 +14,7 @@ namespace UTL{
     void InitCircle(esat::Vec2 *circle, int num_of_points);
     float GetMagnitude(const esat::Vec2* const vec);
     esat::Vec2 NormalizeVector(const esat::Vec2* const vec);
-    void ScreenWrapObject(esat::Vec2* const world_points, int last_point_index);
+    void ScreenWrapObject(esat::Vec2* const obj_position, int displacement_offset);
 }
 
 #endif

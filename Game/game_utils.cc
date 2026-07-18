@@ -73,7 +73,7 @@ void UTL::InitCircle(esat::Vec2 *circle, int num_of_points){
 }
 
 float UTL::GetMagnitude(const esat::Vec2* const vec){
-    return sqrtf((*vec).x * (*vec).x + (*vec).y + (*vec).y);
+    return sqrtf((*vec).x * (*vec).x + (*vec).y * (*vec).y);
 }
 
 esat::Vec2 UTL::NormalizeVector(const esat::Vec2* const vec){
@@ -82,47 +82,9 @@ esat::Vec2 UTL::NormalizeVector(const esat::Vec2* const vec){
     return tmp;
 }
 
-static void AssignLoopLimits(const float* const comp1, const float* const comp2, char* i, char* j, int last_point_index){
-    if(*comp1 > *comp2){
-        *i = -last_point_index;
-        *j = 0;
-    }
-    else{
-        *i = 0;
-        *j = last_point_index;
-    }
-}
-
-static void MovePoints(esat::Vec2* const world_points, int last_point_index, int new_position, bool is_x_axis){
-    char i, j;
-
-    if(new_position){
-        if(is_x_axis)
-            AssignLoopLimits(&(*world_points).x, &(*(world_points + last_point_index)).x, &i, &j, last_point_index);
-        else
-            AssignLoopLimits(&(*world_points).y, &(*(world_points + last_point_index)).y, &i, &j, last_point_index);
-    }
-    else{
-        if(is_x_axis)
-            AssignLoopLimits(&(*(world_points + last_point_index)).x, &(*world_points).x, &i, &j, last_point_index);
-        else
-            AssignLoopLimits(&(*(world_points + last_point_index)).y, &(*world_points).y, &i, &j, last_point_index);
-    }
-    for(i; i <= j; ++i){
-        if(is_x_axis){
-            const float points_difference = (*(world_points + (int)GetAbsoluteValue(i))).x - (*(world_points + j)).x;
-            (*(world_points + (int)GetAbsoluteValue(i))).x = new_position ? new_position + points_difference : new_position - points_difference;
-        }
-        else{
-            const float points_difference = (*(world_points + (int)GetAbsoluteValue(i))).y - (*(world_points + j)).y;
-            (*(world_points + (int)GetAbsoluteValue(i))).y = new_position ? new_position + points_difference : new_position - points_difference;
-        }
-    }
-}
-
-void UTL::ScreenWrapObject(esat::Vec2* const world_points, int last_point_index){
-    if((*(world_points + last_point_index)).x < 0.0f)  MovePoints(world_points, last_point_index, CFG::kScreenX, true);
-    if((*(world_points + last_point_index)).y < 0.0f)  MovePoints(world_points, last_point_index, CFG::kScreenY, false);
-    if((*world_points).x > CFG::kScreenX)  MovePoints(world_points, last_point_index, 0, true);
-    if((*world_points).y > CFG::kScreenY)  MovePoints(world_points, last_point_index, 0, false);
+void UTL::ScreenWrapObject(esat::Vec2* const obj_position, int displacement_offset){
+    if((*obj_position).x < -displacement_offset)  (*obj_position).x = CFG::kScreenX + displacement_offset;
+    if((*obj_position).y < -displacement_offset)  (*obj_position).y = CFG::kScreenY + displacement_offset;
+    if((*obj_position).x > CFG::kScreenX + displacement_offset)  (*obj_position).x = -displacement_offset;
+    if((*obj_position).y > CFG::kScreenY + displacement_offset)  (*obj_position).y = -displacement_offset;
 }

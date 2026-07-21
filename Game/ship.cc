@@ -2,6 +2,7 @@
 
 #include "ship.h"
 
+//!REMOVE AFTER REMOVING DEBUG FUNCTIONS
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -12,12 +13,13 @@
 
 #include "game_utils.h"
 #include "config.h"
+#include "bullet.h"
 
-bool debug = true;
-esat::Vec2 *g_ship_base_points = nullptr, *g_ship_cannon_points = nullptr, *g_ship_flame_points = nullptr, debug_pivot[16], debug_local_pivot[16];
+static bool debug = true;
+static esat::Vec2 *g_ship_base_points = nullptr, *g_ship_cannon_points = nullptr, *g_ship_flame_points = nullptr, debug_pivot[16], debug_local_pivot[16];
 
 struct SHP::TShip{
-    bool is_propelling, is_rotating_right, is_rotating_left;
+    bool is_propelling, is_rotating_right, is_rotating_left, is_ship_shooting;
     unsigned char flames_current_frame;
     float rotation;
     esat::Vec2 position, forward, speed, *base_world_points, *cannon_world_points, *flames_world_points;
@@ -28,8 +30,9 @@ static void InitShip(SHP::TShip** ship){
     (**ship).is_propelling = false;
     (**ship).is_rotating_left = false;
     (**ship).is_rotating_right = false;
+    (**ship).is_ship_shooting = false;
     (**ship).flames_current_frame = 1;
-    (**ship).rotation = 0.0f;
+    (**ship).rotation = 180.0f;
     (**ship).position = {CFG::kScreenX/2, CFG::kScreenY/2};
     (**ship).forward = {-1, 0};
     (**ship).speed = {0, 0};
@@ -91,14 +94,14 @@ static void InitShipLocalPoints(){
 
 static void TransformShipWorldPoints(SHP::TShip* const ship){
     const unsigned char base_vertices = 5, cannon_vertices = 6, flames_vertices = 17;
-    const float ship_scale = 27.5f;
+    const float ship_scale = -27.5f;
 
     UTL::TransformWorldPoints((*ship).base_world_points, g_ship_base_points, base_vertices, ship_scale, (*ship).rotation, (*ship).position);
     UTL::TransformWorldPoints((*ship).cannon_world_points, g_ship_cannon_points, cannon_vertices, ship_scale, (*ship).rotation, (*ship).position);
     if((*ship).is_propelling){
-        const unsigned char flames_scale = 25 * (*ship).flames_current_frame;
-        const float flames_displacement = ((*ship).flames_current_frame - 1) / 37.5f;
-        const esat::Vec2 flames_position = {(*ship).position.x - (*ship).forward.x * flames_displacement, (*ship).position.y - (*ship).forward.y * flames_displacement};
+        const char flames_scale = -25 * (*ship).flames_current_frame;
+        const float flames_displacement = ((*ship).flames_current_frame - 1) / 20.0f;
+        const esat::Vec2 flames_position = {(*ship).position.x + (*ship).forward.x * flames_displacement, (*ship).position.y + (*ship).forward.y * flames_displacement};
 
         UTL::TransformWorldPoints((*ship).flames_world_points, g_ship_flame_points, flames_vertices, flames_scale, (*ship).rotation, flames_position);
     }  
@@ -116,17 +119,21 @@ void SHP::GetInput(SHP::TShip* const ship){
     (*ship).is_propelling = esat::IsSpecialKeyPressed(esat::SpecialKey::kSpecialKey_Up);
     (*ship).is_rotating_left = esat::IsSpecialKeyPressed(esat::SpecialKey::kSpecialKey_Left);
     (*ship).is_rotating_right = esat::IsSpecialKeyPressed(esat::SpecialKey::kSpecialKey_Right);
+    (*ship).is_ship_shooting = esat::IsSpecialKeyDown(esat::SpecialKey::kSpecialKey_Space);
 }
 
 static void UpdateForward(SHP::TShip* const ship){
-    if((*ship).is_propelling)   (*ship).forward = {-cosf(UTL::AngleToRadians((*ship).rotation)), -sinf(UTL::AngleToRadians((*ship).rotation))};
+    if((*ship).is_propelling)   (*ship).forward = UTL::GetVectorDirection((*ship).rotation);
 }
 
 static void Thrust(SHP::TShip* const ship, const double* const dt){
     if((*ship).is_propelling){
-        const unsigned char acceleration = 250;
-        (*ship).speed.x += (*ship).forward.x * acceleration * (*dt);
-        (*ship).speed.y += (*ship).forward.y * acceleration * (*dt);
+        if(UTL::GetMagnitude(&(*ship).speed) < 500){
+            const unsigned char acceleration = 250;
+
+            (*ship).speed.x += (*ship).forward.x * acceleration * (*dt);
+            (*ship).speed.y += (*ship).forward.y * acceleration * (*dt);
+        }
     }
     else{
         const unsigned char decceleration = 50;
@@ -152,6 +159,14 @@ static void Rotate(SHP::TShip* const ship, const double* const dt){
 
     if((*ship).is_rotating_left)    (*ship).rotation -= rotation_speed * (*dt);
     if((*ship).is_rotating_right)    (*ship).rotation += rotation_speed * (*dt);
+}
+
+static void Fire(const SHP::TShip* const ship){
+    if((*ship).is_ship_shooting){
+        esat::Vec2 curr_forward = UTL::GetVectorDirection((*ship).rotation);
+        
+        BLT::Fire(BLT::TBulletOwner::kShipBullet, UTL::SumVec2((*ship).position, UTL::MultVecScalar(curr_forward, 10)), curr_forward);
+    }
 }
 
 static void UpdateFlamesAnimation(SHP::TShip* const ship, const double* const dt){
@@ -182,6 +197,7 @@ void SHP::Update(SHP::TShip* const ship, const double* const dt){
     Move(ship, dt);
     DebugSpeedMagnitude(ship, dt);
     Rotate(ship, dt);
+    Fire(ship);
     UpdateFlamesAnimation(ship, dt);
     UTL::ScreenWrapObject(&(*ship).position, 50);
     if(UTL::GetMagnitude(&(*ship).speed) > 0.0f || (*ship).is_rotating_left || (*ship).is_rotating_right) TransformShipWorldPoints(ship);

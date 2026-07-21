@@ -88,3 +88,23 @@ void UTL::ScreenWrapObject(esat::Vec2* const obj_position, int displacement_offs
     if((*obj_position).x > CFG::kScreenX + displacement_offset)  (*obj_position).x = -displacement_offset;
     if((*obj_position).y > CFG::kScreenY + displacement_offset)  (*obj_position).y = -displacement_offset;
 }
+
+esat::Vec2 UTL::SumVec2(const esat::Vec2& a, const esat::Vec2& b){
+    esat::Vec2 tmp = {0.0f, 0.0f};
+
+    tmp = {a.x + b.x, a.y + b.y};
+
+    return tmp;
+}
+
+esat::Vec2 UTL::MultVecScalar(const esat::Vec2& a, const int k){
+    esat::Vec2 tmp = {0.0f, 0.0f};
+
+    tmp = {a.x * k, a.y * k};
+
+    return tmp;
+}
+
+esat::Vec2 UTL::GetVectorDirection(const float& rotation){
+    return {cosf(UTL::AngleToRadians(rotation)), sinf(UTL::AngleToRadians(rotation))};
+}

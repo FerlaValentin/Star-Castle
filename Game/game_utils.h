@@ -15,6 +15,9 @@ namespace UTL{
     float GetMagnitude(const esat::Vec2* const vec);
     esat::Vec2 NormalizeVector(const esat::Vec2* const vec);
     void ScreenWrapObject(esat::Vec2* const obj_position, int displacement_offset);
+    esat::Vec2 SumVec2(const esat::Vec2& a, const esat::Vec2& b);
+    esat::Vec2 MultVecScalar(const esat::Vec2& a, const int k);
+    esat::Vec2 GetVectorDirection(const float& rotation);
 }
 
 #endif

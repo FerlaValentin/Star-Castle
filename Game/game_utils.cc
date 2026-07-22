@@ -72,21 +72,21 @@ void UTL::InitCircle(esat::Vec2 *circle, int num_of_points){
     }
 }
 
-float UTL::GetMagnitude(const esat::Vec2* const vec){
-    return sqrtf((*vec).x * (*vec).x + (*vec).y * (*vec).y);
+float UTL::GetMagnitude(const esat::Vec2& vec){
+    return sqrtf(vec.x * vec.x + vec.y * vec.y);
 }
 
-esat::Vec2 UTL::NormalizeVector(const esat::Vec2* const vec){
-    esat::Vec2 tmp = {(*vec).x / UTL::GetMagnitude(vec), (*vec).y / UTL::GetMagnitude(vec)};
+esat::Vec2 UTL::NormalizeVector(const esat::Vec2& vec){
+    esat::Vec2 tmp = {vec.x / UTL::GetMagnitude(vec), vec.y / UTL::GetMagnitude(vec)};
 
     return tmp;
 }
 
-void UTL::ScreenWrapObject(esat::Vec2* const obj_position, int displacement_offset){
-    if((*obj_position).x < -displacement_offset)  (*obj_position).x = CFG::kScreenX + displacement_offset;
-    if((*obj_position).y < -displacement_offset)  (*obj_position).y = CFG::kScreenY + displacement_offset;
-    if((*obj_position).x > CFG::kScreenX + displacement_offset)  (*obj_position).x = -displacement_offset;
-    if((*obj_position).y > CFG::kScreenY + displacement_offset)  (*obj_position).y = -displacement_offset;
+void UTL::ScreenWrapObject(esat::Vec2& obj_position, int displacement_offset){
+    if(obj_position.x < -displacement_offset)  obj_position.x = CFG::kScreenX + displacement_offset;
+    if(obj_position.y < -displacement_offset)  obj_position.y = CFG::kScreenY + displacement_offset;
+    if(obj_position.x > CFG::kScreenX + displacement_offset)  obj_position.x = -displacement_offset;
+    if(obj_position.y > CFG::kScreenY + displacement_offset)  obj_position.y = -displacement_offset;
 }
 
 esat::Vec2 UTL::SumVec2(const esat::Vec2& a, const esat::Vec2& b){

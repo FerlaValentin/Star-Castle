@@ -128,7 +128,7 @@ static void UpdateForward(SHP::TShip* const ship){
 
 static void Thrust(SHP::TShip* const ship, const double* const dt){
     if((*ship).is_propelling){
-        if(UTL::GetMagnitude(&(*ship).speed) < 500){
+        if(UTL::GetMagnitude((*ship).speed) < 500){
             const unsigned char acceleration = 250;
 
             (*ship).speed.x += (*ship).forward.x * acceleration * (*dt);
@@ -137,8 +137,8 @@ static void Thrust(SHP::TShip* const ship, const double* const dt){
     }
     else{
         const unsigned char decceleration = 50;
-        if(UTL::GetMagnitude(&(*ship).speed) - decceleration * (*dt) > 0.0f){
-            const esat::Vec2 norm_speed = UTL::NormalizeVector(&(*ship).speed);
+        if(UTL::GetMagnitude((*ship).speed) - decceleration * (*dt) > 0.0f){
+            const esat::Vec2 norm_speed = UTL::NormalizeVector((*ship).speed);
             (*ship).speed.x -= norm_speed.x * decceleration * (*dt);
             (*ship).speed.y -= norm_speed.y * decceleration * (*dt);
         }
@@ -148,7 +148,7 @@ static void Thrust(SHP::TShip* const ship, const double* const dt){
 }
 
 static void Move(SHP::TShip* const ship, const double* const dt){
-    if(UTL::GetMagnitude(&(*ship).speed) > 0.0f){
+    if(UTL::GetMagnitude((*ship).speed) > 0.0f){
         (*ship).position.x += (*ship).speed.x * (*dt);
         (*ship).position.y += (*ship).speed.y * (*dt);
     }
@@ -165,7 +165,7 @@ static void Fire(const SHP::TShip* const ship){
     if((*ship).is_ship_shooting){
         esat::Vec2 curr_forward = UTL::GetVectorDirection((*ship).rotation);
         
-        BLT::Fire(BLT::TBulletOwner::kShipBullet, UTL::SumVec2((*ship).position, UTL::MultVecScalar(curr_forward, 10)), curr_forward);
+        BLT::Fire(BLT::TBulletOwner::kShipBullet, UTL::SumVec2((*ship).position, UTL::MultVecScalar(curr_forward, 20)), curr_forward);
     }
 }
 
@@ -184,9 +184,9 @@ static void UpdateFlamesAnimation(SHP::TShip* const ship, const double* const dt
 //! CHECKS IF THE MAGNITUDE RETURNS A NaN
 static void DebugSpeedMagnitude(SHP::TShip* const ship, const double* const dt){
     if((*ship).is_propelling){
-        if(UTL::GetMagnitude(&(*ship).speed) != UTL::GetMagnitude(&(*ship).speed)){
+        if(UTL::GetMagnitude((*ship).speed) != UTL::GetMagnitude((*ship).speed)){
             printf("SHIP SPEED: [X] %f [Y] %f\n", (*ship).speed.x, (*ship).speed.y);
-            printf("SHIP SPEED MAGNITUDE: %f\n", UTL::GetMagnitude(&(*ship).speed));
+            printf("SHIP SPEED MAGNITUDE: %f\n", UTL::GetMagnitude((*ship).speed));
         }
     }
 }
@@ -199,8 +199,8 @@ void SHP::Update(SHP::TShip* const ship, const double* const dt){
     Rotate(ship, dt);
     Fire(ship);
     UpdateFlamesAnimation(ship, dt);
-    UTL::ScreenWrapObject(&(*ship).position, 50);
-    if(UTL::GetMagnitude(&(*ship).speed) > 0.0f || (*ship).is_rotating_left || (*ship).is_rotating_right) TransformShipWorldPoints(ship);
+    UTL::ScreenWrapObject((*ship).position, 50);
+    if(UTL::GetMagnitude((*ship).speed) > 0.0f || (*ship).is_rotating_left || (*ship).is_rotating_right) TransformShipWorldPoints(ship);
 }
 
 static void DrawBase(esat::Vec2* const base_points){

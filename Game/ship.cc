@@ -33,7 +33,7 @@ static void InitShip(SHP::TShip** ship){
     (**ship).is_ship_shooting = false;
     (**ship).flames_current_frame = 1;
     (**ship).rotation = 180.0f;
-    (**ship).position = {CFG::kScreenX/2, CFG::kScreenY/2};
+    (**ship).position = {CFG::kScreenX - 75, CFG::kScreenY / 4};
     (**ship).forward = {-1, 0};
     (**ship).speed = {0, 0};
     (**ship).base_world_points = (esat::Vec2*)malloc(sizeof(esat::Vec2) * 5);
@@ -94,16 +94,16 @@ static void InitShipLocalPoints(){
 
 static void TransformShipWorldPoints(SHP::TShip* const ship){
     const unsigned char base_vertices = 5, cannon_vertices = 6, flames_vertices = 17;
-    const float ship_scale = -27.5f;
+    const float ship_scale = -27.5f, radians_rotation = UTL::AngleToRadians((*ship).rotation);
 
-    UTL::TransformWorldPoints((*ship).base_world_points, g_ship_base_points, base_vertices, ship_scale, (*ship).rotation, (*ship).position);
-    UTL::TransformWorldPoints((*ship).cannon_world_points, g_ship_cannon_points, cannon_vertices, ship_scale, (*ship).rotation, (*ship).position);
+    UTL::TransformWorldPoints((*ship).base_world_points, g_ship_base_points, base_vertices, ship_scale, radians_rotation, (*ship).position);
+    UTL::TransformWorldPoints((*ship).cannon_world_points, g_ship_cannon_points, cannon_vertices, ship_scale, radians_rotation, (*ship).position);
     if((*ship).is_propelling){
         const char flames_scale = -25 * (*ship).flames_current_frame;
         const float flames_displacement = ((*ship).flames_current_frame - 1) / 20.0f;
         const esat::Vec2 flames_position = {(*ship).position.x + (*ship).forward.x * flames_displacement, (*ship).position.y + (*ship).forward.y * flames_displacement};
 
-        UTL::TransformWorldPoints((*ship).flames_world_points, g_ship_flame_points, flames_vertices, flames_scale, (*ship).rotation, flames_position);
+        UTL::TransformWorldPoints((*ship).flames_world_points, g_ship_flame_points, flames_vertices, flames_scale, radians_rotation, flames_position);
     }  
     UTL::TransformWorldPoints(debug_pivot, debug_local_pivot, 16, 3.5f, 0.0f, (*ship).position);
 }
@@ -123,66 +123,66 @@ void SHP::GetInput(SHP::TShip* const ship){
 }
 
 static void UpdateForward(SHP::TShip* const ship){
-    if((*ship).is_propelling)   (*ship).forward = UTL::GetVectorDirection((*ship).rotation);
+    if((*ship).is_propelling)   (*ship).forward = UTL::GetVectorDirectionFromRotation((*ship).rotation);
 }
 
-static void Thrust(SHP::TShip* const ship, const double* const dt){
+static void Thrust(SHP::TShip* const ship, const double& dt){
     if((*ship).is_propelling){
         if(UTL::GetMagnitude((*ship).speed) < 500){
             const unsigned char acceleration = 250;
 
-            (*ship).speed.x += (*ship).forward.x * acceleration * (*dt);
-            (*ship).speed.y += (*ship).forward.y * acceleration * (*dt);
+            (*ship).speed.x += (*ship).forward.x * acceleration * dt;
+            (*ship).speed.y += (*ship).forward.y * acceleration * dt;
         }
     }
     else{
         const unsigned char decceleration = 50;
-        if(UTL::GetMagnitude((*ship).speed) - decceleration * (*dt) > 0.0f){
+        if(UTL::GetMagnitude((*ship).speed) - decceleration * dt > 0.0f){
             const esat::Vec2 norm_speed = UTL::NormalizeVector((*ship).speed);
-            (*ship).speed.x -= norm_speed.x * decceleration * (*dt);
-            (*ship).speed.y -= norm_speed.y * decceleration * (*dt);
+            (*ship).speed.x -= norm_speed.x * decceleration * dt;
+            (*ship).speed.y -= norm_speed.y * decceleration * dt;
         }
         else
             (*ship).speed = {0.0f, 0.0f};
     }
 }
 
-static void Move(SHP::TShip* const ship, const double* const dt){
+static void Move(SHP::TShip* const ship, const double& dt){
     if(UTL::GetMagnitude((*ship).speed) > 0.0f){
-        (*ship).position.x += (*ship).speed.x * (*dt);
-        (*ship).position.y += (*ship).speed.y * (*dt);
+        (*ship).position.x += (*ship).speed.x * dt;
+        (*ship).position.y += (*ship).speed.y * dt;
     }
 }
 
-static void Rotate(SHP::TShip* const ship, const double* const dt){
+static void Rotate(SHP::TShip* const ship, const double& dt){
     const unsigned char rotation_speed = 250;
 
-    if((*ship).is_rotating_left)    (*ship).rotation -= rotation_speed * (*dt);
-    if((*ship).is_rotating_right)    (*ship).rotation += rotation_speed * (*dt);
+    if((*ship).is_rotating_left)    (*ship).rotation -= rotation_speed * dt;
+    if((*ship).is_rotating_right)    (*ship).rotation += rotation_speed * dt;
 }
 
 static void Fire(const SHP::TShip* const ship){
     if((*ship).is_ship_shooting){
-        esat::Vec2 curr_forward = UTL::GetVectorDirection((*ship).rotation);
+        esat::Vec2 curr_forward = UTL::GetVectorDirectionFromRotation((*ship).rotation);
         
         BLT::Fire(BLT::TBulletOwner::kShipBullet, UTL::SumVec2((*ship).position, UTL::MultVecScalar(curr_forward, 20)), curr_forward);
     }
 }
 
-static void UpdateFlamesAnimation(SHP::TShip* const ship, const double* const dt){
+static void UpdateFlamesAnimation(SHP::TShip* const ship, const double& dt){
     const float frame_change_timestamp = 0.125f;
     static float timer = 0.0f;
 
     if((*ship).is_propelling){
         (*ship).flames_current_frame = ((int)(timer / frame_change_timestamp) % 3) + 1;
-        timer += *dt;
+        timer += dt;
     }
     else
         timer = 0.0f;
 }
 
 //! CHECKS IF THE MAGNITUDE RETURNS A NaN
-static void DebugSpeedMagnitude(SHP::TShip* const ship, const double* const dt){
+static void DebugSpeedMagnitude(SHP::TShip* const ship, const double& dt){
     if((*ship).is_propelling){
         if(UTL::GetMagnitude((*ship).speed) != UTL::GetMagnitude((*ship).speed)){
             printf("SHIP SPEED: [X] %f [Y] %f\n", (*ship).speed.x, (*ship).speed.y);
@@ -191,7 +191,7 @@ static void DebugSpeedMagnitude(SHP::TShip* const ship, const double* const dt){
     }
 }
 
-void SHP::Update(SHP::TShip* const ship, const double* const dt){
+void SHP::Update(SHP::TShip* const ship, const double& dt){
     UpdateForward(ship);
     Thrust(ship, dt);
     Move(ship, dt);
@@ -245,11 +245,15 @@ void SHP::Draw(const SHP::TShip* const ship){
     DebugPivot();
 }
 
-void SHP::Free(SHP::TShip* ship){
+void SHP::Free(SHP::TShip** ship){
     free(g_ship_base_points);
     free(g_ship_cannon_points);
-    free((*ship).base_world_points);
-    free((*ship).cannon_world_points);
-    free((*ship).flames_world_points);
-    free(ship);
+    free((**ship).base_world_points);
+    free((**ship).cannon_world_points);
+    free((**ship).flames_world_points);
+    free(*ship);
+}
+
+esat::Vec2 SHP::GetPosition(const SHP::TShip* const ship){
+    return (*ship).position;
 }

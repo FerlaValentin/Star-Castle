@@ -52,7 +52,7 @@ static esat::Mat3 GetTransformationMatrix(float scale, float angle, esat::Vec2 t
     esat::Mat3 tmp = esat::Mat3Identity();
 
     tmp = esat::Mat3Multiply(esat::Mat3Scale(scale, scale), tmp);
-    tmp = esat::Mat3Multiply(esat::Mat3Rotate(UTL::AngleToRadians(angle)), tmp);
+    tmp = esat::Mat3Multiply(esat::Mat3Rotate(angle), tmp);
     tmp = esat::Mat3Multiply(esat::Mat3Translate(translate.x, translate.y), tmp);
 
     return tmp;
@@ -105,6 +105,20 @@ esat::Vec2 UTL::MultVecScalar(const esat::Vec2& a, const int k){
     return tmp;
 }
 
-esat::Vec2 UTL::GetVectorDirection(const float& rotation){
+esat::Vec2 UTL::GetVectorDirectionFromRotation(const float& rotation){
     return {cosf(UTL::AngleToRadians(rotation)), sinf(UTL::AngleToRadians(rotation))};
+}
+
+static esat::Vec2 SubsVec2(const esat::Vec2& a, const esat::Vec2& b){
+    esat::Vec2 tmp = {0.0f, 0.0f};
+
+    tmp = {a.x - b.x, a.y - b.y};
+
+    return tmp;
+}
+
+esat::Vec2 UTL::GetVectorDirectionFromPoints(const esat::Vec2& destiny, const esat::Vec2& origin){
+    esat::Vec2 tmp = SubsVec2(origin, destiny);
+
+    return UTL::NormalizeVector(tmp);
 }

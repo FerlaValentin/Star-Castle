@@ -44,17 +44,17 @@ void BLT::Init(){
     InitLocalPoints();
 }
 
-static void Move(const double* const dt, TBullet* const tmp){
+static void Move(const double& dt, TBullet* const tmp){
     const short bullet_speed = 1450;
     
-    (*tmp).position.x += (*tmp).forward.x * bullet_speed * (*dt);
-    (*tmp).position.y += (*tmp).forward.y * bullet_speed * (*dt);
+    (*tmp).position.x += (*tmp).forward.x * bullet_speed * dt;
+    (*tmp).position.y += (*tmp).forward.y * bullet_speed * dt;
 }
 
-static void UpdateTravelledDistance(const double* const dt, TBullet* const tmp){
+static void UpdateTravelledDistance(const double& dt, TBullet* const tmp){
     const short bullet_speed = 1450;
     
-    (*tmp).travelled_distance += bullet_speed * (*dt);
+    (*tmp).travelled_distance += bullet_speed * dt;
 }
 
 static void DeactivateBullet(TBullet* const tmp){
@@ -88,7 +88,7 @@ static void DebugNode(const TBullet* const tmp){
     }
 }
 
-void BLT::Update(const double* const dt){
+void BLT::Update(const double& dt){
     TBullet* tmp = g_bullets;
 
     ActivateDebug();

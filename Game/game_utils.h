@@ -17,7 +17,8 @@ namespace UTL{
     void ScreenWrapObject(esat::Vec2& obj_position, int displacement_offset);
     esat::Vec2 SumVec2(const esat::Vec2& a, const esat::Vec2& b);
     esat::Vec2 MultVecScalar(const esat::Vec2& a, const int k);
-    esat::Vec2 GetVectorDirection(const float& rotation);
+    esat::Vec2 GetVectorDirectionFromRotation(const float& rotation);
+    esat::Vec2 GetVectorDirectionFromPoints(const esat::Vec2& destiny, const esat::Vec2& origin);
 }
 
 #endif

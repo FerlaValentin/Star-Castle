@@ -36,7 +36,7 @@ int esat::main(int argc, char **argv){
     	esat::DrawClear(0,0,0);
 
         GAME::GetInput();
-        GAME::Update(&dt);
+        GAME::Update(dt);
         GAME::Draw();
 
     	esat::DrawEnd();  	

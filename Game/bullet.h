@@ -13,7 +13,7 @@ namespace BLT{
     };
 
     void Init();
-    void Update(const double* const dt);
+    void Update(const double& dt);
     void Draw();
     void Free();
     void Fire(TBulletOwner owner, esat::Vec2 start_position, esat::Vec2 forward);

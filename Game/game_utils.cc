@@ -52,7 +52,7 @@ static esat::Mat3 GetTransformationMatrix(float scale, float angle, esat::Vec2 t
     esat::Mat3 tmp = esat::Mat3Identity();
 
     tmp = esat::Mat3Multiply(esat::Mat3Scale(scale, scale), tmp);
-    tmp = esat::Mat3Multiply(esat::Mat3Rotate(angle), tmp);
+    tmp = esat::Mat3Multiply(esat::Mat3Rotate(UTL::AngleToRadians(angle)), tmp);
     tmp = esat::Mat3Multiply(esat::Mat3Translate(translate.x, translate.y), tmp);
 
     return tmp;
@@ -121,4 +121,8 @@ esat::Vec2 UTL::GetVectorDirectionFromPoints(const esat::Vec2& destiny, const es
     esat::Vec2 tmp = SubsVec2(origin, destiny);
 
     return UTL::NormalizeVector(tmp);
+}
+
+float UTL::RadiansToAngle(float radians){
+    return radians * 180 / M_PI;
 }

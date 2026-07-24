@@ -19,6 +19,7 @@ namespace UTL{
     esat::Vec2 MultVecScalar(const esat::Vec2& a, const int k);
     esat::Vec2 GetVectorDirectionFromRotation(const float& rotation);
     esat::Vec2 GetVectorDirectionFromPoints(const esat::Vec2& destiny, const esat::Vec2& origin);
+    float RadiansToAngle(float radians);
 }
 
 #endif

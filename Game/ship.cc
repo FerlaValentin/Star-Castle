@@ -94,16 +94,16 @@ static void InitShipLocalPoints(){
 
 static void TransformShipWorldPoints(SHP::TShip* const ship){
     const unsigned char base_vertices = 5, cannon_vertices = 6, flames_vertices = 17;
-    const float ship_scale = -27.5f, radians_rotation = UTL::AngleToRadians((*ship).rotation);
+    const float ship_scale = -27.5f;
 
-    UTL::TransformWorldPoints((*ship).base_world_points, g_ship_base_points, base_vertices, ship_scale, radians_rotation, (*ship).position);
-    UTL::TransformWorldPoints((*ship).cannon_world_points, g_ship_cannon_points, cannon_vertices, ship_scale, radians_rotation, (*ship).position);
+    UTL::TransformWorldPoints((*ship).base_world_points, g_ship_base_points, base_vertices, ship_scale, (*ship).rotation, (*ship).position);
+    UTL::TransformWorldPoints((*ship).cannon_world_points, g_ship_cannon_points, cannon_vertices, ship_scale, (*ship).rotation, (*ship).position);
     if((*ship).is_propelling){
         const char flames_scale = -25 * (*ship).flames_current_frame;
         const float flames_displacement = ((*ship).flames_current_frame - 1) / 20.0f;
         const esat::Vec2 flames_position = {(*ship).position.x + (*ship).forward.x * flames_displacement, (*ship).position.y + (*ship).forward.y * flames_displacement};
 
-        UTL::TransformWorldPoints((*ship).flames_world_points, g_ship_flame_points, flames_vertices, flames_scale, radians_rotation, flames_position);
+        UTL::TransformWorldPoints((*ship).flames_world_points, g_ship_flame_points, flames_vertices, flames_scale, (*ship).rotation, flames_position);
     }  
     UTL::TransformWorldPoints(debug_pivot, debug_local_pivot, 16, 3.5f, 0.0f, (*ship).position);
 }

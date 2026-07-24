@@ -4,6 +4,7 @@
 //!REMOVE AFTER REMOVING DEBUG FUNCTIONS
 #include <stdio.h>
 #include <stdlib.h>
+#define _USE_MATH_DEFINES
 #include <math.h>
 
 #include <esat\math.h>
@@ -13,7 +14,7 @@
 #include "config.h"
 
 struct TStarCastle{
-    float rotation, last_rotation;
+    float curr_rotation, target_rotation;
     esat::Vec2 position, forward, *body_world_points, *left_wing_world_points, *right_wing_world_points;
 };
 
@@ -57,8 +58,8 @@ static void InitLocalPoints(){
 
 static void InitStarCastle(){
     g_star_castle = (TStarCastle*)malloc(sizeof(TStarCastle));
-    (*g_star_castle).rotation = 0.0f;
-    (*g_star_castle).last_rotation = 0.0f;
+    (*g_star_castle).curr_rotation = 0.0f;
+    (*g_star_castle).target_rotation = 0.0f;
     (*g_star_castle).position = {CFG::kScreenX/2 + 40, CFG::kScreenY/2};
     (*g_star_castle).forward = {0.0f, 0.0f};
     (*g_star_castle).body_world_points = (esat::Vec2*)malloc(sizeof(esat::Vec2) * 6);
@@ -75,26 +76,55 @@ static void UpdateForward(esat::Vec2& ship_position){
     (*g_star_castle).forward = UTL::GetVectorDirectionFromPoints(ship_position, (*g_star_castle).position);
 }
 
-//!ROTATION IS ALREADY IN RADIANS
-static void Rotate(){
-    (*g_star_castle).rotation = atan2f((*g_star_castle).forward.y, (*g_star_castle).forward.x);
+static void UpdateTargetRotation(){
+    (*g_star_castle).target_rotation = UTL::RadiansToAngle(atan2f((*g_star_castle).forward.y, (*g_star_castle).forward.x));
+}
+
+static void CorrectTargetRotation(){
+    if((*g_star_castle).target_rotation < 0) (*g_star_castle).target_rotation += 360;
+}
+
+static void Rotate(const double& dt){
+    const unsigned char rotation_speed = 200;
+
+    if((*g_star_castle).curr_rotation - (*g_star_castle).target_rotation < 360 - (*g_star_castle).curr_rotation + (*g_star_castle).target_rotation){
+        (*g_star_castle).curr_rotation -= rotation_speed * dt;
+        if((*g_star_castle).curr_rotation < (*g_star_castle).target_rotation){
+            printf("[DEBUG] CURR_ROTATION < TARGET_ROTATION\n");
+            (*g_star_castle).curr_rotation = (*g_star_castle).target_rotation;
+        }
+    }
+    else{
+        (*g_star_castle).curr_rotation += rotation_speed * dt;
+        if((*g_star_castle).curr_rotation > (*g_star_castle).target_rotation){
+            printf("[DEBUG] TARGET_ROTATION < CURR_ROTATION\n");
+            (*g_star_castle).curr_rotation = (*g_star_castle).target_rotation;
+        }
+    }
+}
+
+static void CorrectRotation(){
+    if((*g_star_castle).curr_rotation >= 360)    (*g_star_castle).curr_rotation -= 360;
+    if((*g_star_castle).curr_rotation < 0)    (*g_star_castle).curr_rotation += 360;
 }
 
 static void TransformStarCastlePoints(){
-    const char star_castle_scale = 60.0f;
+    const char star_castle_scale = 60;
 
-    UTL::TransformWorldPoints((*g_star_castle).body_world_points, g_body_local_points, 6, star_castle_scale, (*g_star_castle).rotation, (*g_star_castle).position);
-    UTL::TransformWorldPoints((*g_star_castle).left_wing_world_points, g_left_wing_local_points, 4, star_castle_scale, (*g_star_castle).rotation, (*g_star_castle).position);
-    UTL::TransformWorldPoints((*g_star_castle).right_wing_world_points, g_right_wing_local_points, 4, star_castle_scale, (*g_star_castle).rotation, (*g_star_castle).position);
+    UTL::TransformWorldPoints((*g_star_castle).body_world_points, g_body_local_points, 6, star_castle_scale, (*g_star_castle).curr_rotation, (*g_star_castle).position);
+    UTL::TransformWorldPoints((*g_star_castle).left_wing_world_points, g_left_wing_local_points, 4, star_castle_scale, (*g_star_castle).curr_rotation, (*g_star_castle).position);
+    UTL::TransformWorldPoints((*g_star_castle).right_wing_world_points, g_right_wing_local_points, 4, star_castle_scale, (*g_star_castle).curr_rotation, (*g_star_castle).position);
 }
 
 void STCT::Update(const double& dt, esat::Vec2& ship_position){
     UpdateForward(ship_position);
-    Rotate();
-    if((*g_star_castle).rotation != (*g_star_castle).last_rotation){
-        printf("[DEBUG] Rotation: %f\n", (*g_star_castle).rotation);
+    UpdateTargetRotation();
+    CorrectTargetRotation();
+    if((*g_star_castle).curr_rotation != (*g_star_castle).target_rotation){
+        printf("[DEBUG] curr_rotation: %f target_rotation: %f\n\n\n", (*g_star_castle).curr_rotation, (*g_star_castle).target_rotation);
+        Rotate(dt);
+        CorrectRotation();
         TransformStarCastlePoints();
-        (*g_star_castle).last_rotation = (*g_star_castle).rotation;
     }
 }
 

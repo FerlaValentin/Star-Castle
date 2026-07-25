@@ -1,4 +1,4 @@
-//? Pending to add smooth transition
+//? Pending to optimize rotation interpolation
 #include "starcastle.h"
 
 //!REMOVE AFTER REMOVING DEBUG FUNCTIONS
@@ -78,32 +78,45 @@ static void UpdateForward(esat::Vec2& ship_position){
 
 static void UpdateTargetRotation(){
     (*g_star_castle).target_rotation = UTL::RadiansToAngle(atan2f((*g_star_castle).forward.y, (*g_star_castle).forward.x));
-}
-
-static void CorrectTargetRotation(){
     if((*g_star_castle).target_rotation < 0) (*g_star_castle).target_rotation += 360;
 }
 
-static void Rotate(const double& dt){
-    const unsigned char rotation_speed = 200;
+static int MathModule(int dividend, int module){
+    int tmp = dividend;
 
-    if((*g_star_castle).curr_rotation - (*g_star_castle).target_rotation < 360 - (*g_star_castle).curr_rotation + (*g_star_castle).target_rotation){
-        (*g_star_castle).curr_rotation -= rotation_speed * dt;
-        if((*g_star_castle).curr_rotation < (*g_star_castle).target_rotation){
-            printf("[DEBUG] CURR_ROTATION < TARGET_ROTATION\n");
-            (*g_star_castle).curr_rotation = (*g_star_castle).target_rotation;
-        }
+    if(tmp < 0){
+        const int temporary_module = tmp * -1 % module;
+
+        tmp = temporary_module * !!temporary_module - temporary_module;
     }
-    else{
-        (*g_star_castle).curr_rotation += rotation_speed * dt;
-        if((*g_star_castle).curr_rotation > (*g_star_castle).target_rotation){
-            printf("[DEBUG] TARGET_ROTATION < CURR_ROTATION\n");
-            (*g_star_castle).curr_rotation = (*g_star_castle).target_rotation;
-        }
-    }
+    else
+        tmp %= module;
+
+    return tmp;
 }
 
-static void CorrectRotation(){
+static void Rotate(const double& dt){
+    const unsigned char delta_timed_rotation_speed = 200 * dt;
+
+    if(MathModule((*g_star_castle).target_rotation - (*g_star_castle).curr_rotation + 180, 360) - 180){}
+    if((*g_star_castle).curr_rotation > (*g_star_castle).target_rotation){
+        if((*g_star_castle).curr_rotation - (*g_star_castle).target_rotation < 360 - (*g_star_castle).curr_rotation + (*g_star_castle).target_rotation)
+            (*g_star_castle).curr_rotation -= delta_timed_rotation_speed;
+        else
+            (*g_star_castle).curr_rotation += delta_timed_rotation_speed;
+    }
+    else{
+        if((*g_star_castle).target_rotation - (*g_star_castle).curr_rotation < 360 - (*g_star_castle).target_rotation + (*g_star_castle).curr_rotation)
+            (*g_star_castle).curr_rotation += delta_timed_rotation_speed;
+        else
+            (*g_star_castle).curr_rotation -= delta_timed_rotation_speed;
+    }
+    if((*g_star_castle).curr_rotation > (*g_star_castle).target_rotation - delta_timed_rotation_speed 
+    && (*g_star_castle).curr_rotation < (*g_star_castle).target_rotation + delta_timed_rotation_speed)
+        (*g_star_castle).curr_rotation = (*g_star_castle).target_rotation;
+}
+
+static void ClampRotation(){
     if((*g_star_castle).curr_rotation >= 360)    (*g_star_castle).curr_rotation -= 360;
     if((*g_star_castle).curr_rotation < 0)    (*g_star_castle).curr_rotation += 360;
 }
@@ -119,11 +132,9 @@ static void TransformStarCastlePoints(){
 void STCT::Update(const double& dt, esat::Vec2& ship_position){
     UpdateForward(ship_position);
     UpdateTargetRotation();
-    CorrectTargetRotation();
     if((*g_star_castle).curr_rotation != (*g_star_castle).target_rotation){
-        printf("[DEBUG] curr_rotation: %f target_rotation: %f\n\n\n", (*g_star_castle).curr_rotation, (*g_star_castle).target_rotation);
         Rotate(dt);
-        CorrectRotation();
+        ClampRotation();
         TransformStarCastlePoints();
     }
 }

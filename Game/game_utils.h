@@ -7,6 +7,7 @@ namespace esat{
 }
 
 namespace UTL{
+    float GetAbsoluteValue(float number);
     void NormalizePoints(esat::Vec2* const points, const int num_of_points);
     void DebugPoints(const char* const debug_header, esat::Vec2* points, const int num_of_points);
     float AngleToRadians(float angle);

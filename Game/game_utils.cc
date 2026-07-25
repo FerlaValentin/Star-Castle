@@ -9,15 +9,15 @@
 
 #include "config.h"
 
-static float GetAbsoluteValue(float number){
+float UTL::GetAbsoluteValue(float number){
     return number < 0 ? number * -1 : number;
 }
 
 static float FindBiggestComponent(esat::Vec2* points, int num_of_points){
     float biggest_component = FLT_MIN;
     for(int i = 0; i < num_of_points; ++i){
-        if(GetAbsoluteValue((*(points + i)).x) > biggest_component) biggest_component = GetAbsoluteValue((*(points + i)).x);
-        if(GetAbsoluteValue((*(points + i)).y) > biggest_component) biggest_component = GetAbsoluteValue((*(points + i)).y);
+        if(UTL::GetAbsoluteValue((*(points + i)).x) > biggest_component) biggest_component = UTL::GetAbsoluteValue((*(points + i)).x);
+        if(UTL::GetAbsoluteValue((*(points + i)).y) > biggest_component) biggest_component = UTL::GetAbsoluteValue((*(points + i)).y);
     }
 
     return biggest_component;

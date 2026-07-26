@@ -82,15 +82,14 @@ static void UpdateTargetRotation(){
 }
 
 static int MathModule(int dividend, int module){
-    int tmp = dividend;
+    int tmp = -1;
 
-    if(tmp < 0){
-        const int temporary_module = tmp * -1 % module;
-
-        tmp = temporary_module * !!temporary_module - temporary_module;
+    if(dividend < 0){
+        tmp = dividend + module * (UTL::GetAbsoluteValue(dividend) / UTL::GetAbsoluteValue(module));
+        dividend = tmp;
     }
-    else
-        tmp %= module;
+
+    tmp = 
 
     return tmp;
 }

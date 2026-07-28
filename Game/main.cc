@@ -1,3 +1,4 @@
+//? CHECK WHY STARCASTLE DOESNT SNAP TO SHIP
 #include <stdio.h>
 
 #include <esat\window.h>

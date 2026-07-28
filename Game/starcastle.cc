@@ -1,4 +1,3 @@
-//? Pending to optimize rotation interpolation
 #include "starcastle.h"
 
 //!REMOVE AFTER REMOVING DEBUG FUNCTIONS
@@ -12,6 +11,7 @@
 
 #include "game_utils.h"
 #include "config.h"
+#include "bullet.h"
 
 struct TStarCastle{
     float curr_rotation, target_rotation;
@@ -81,38 +81,33 @@ static void UpdateTargetRotation(){
     if((*g_star_castle).target_rotation < 0) (*g_star_castle).target_rotation += 360;
 }
 
-static int MathModule(int dividend, int module){
-    int tmp = -1;
+//!MODULE CAN'T BE LESS OR EQUAL TO 0
+static int EuclideanModule(int dividend, int module){
+    return (module + dividend % module) % module;
+}
 
-    if(dividend < 0){
-        tmp = dividend + module * (UTL::GetAbsoluteValue(dividend) / UTL::GetAbsoluteValue(module));
-        dividend = tmp;
-    }
-
-    tmp = 
-
-    return tmp;
+static void SnapToTarget(const double& dt){
+    const unsigned char delta_timed_rotation_speed = 200 * dt;
+    
+    if((*g_star_castle).curr_rotation > (*g_star_castle).target_rotation - delta_timed_rotation_speed 
+    && (*g_star_castle).curr_rotation < (*g_star_castle).target_rotation + delta_timed_rotation_speed){}
+        (*g_star_castle).curr_rotation = (*g_star_castle).target_rotation;
 }
 
 static void Rotate(const double& dt){
     const unsigned char delta_timed_rotation_speed = 200 * dt;
+    const int angular_distance = (*g_star_castle).target_rotation - (*g_star_castle).curr_rotation, eucli_module = EuclideanModule(angular_distance, 360);
 
-    if(MathModule((*g_star_castle).target_rotation - (*g_star_castle).curr_rotation + 180, 360) - 180){}
-    if((*g_star_castle).curr_rotation > (*g_star_castle).target_rotation){
-        if((*g_star_castle).curr_rotation - (*g_star_castle).target_rotation < 360 - (*g_star_castle).curr_rotation + (*g_star_castle).target_rotation)
-            (*g_star_castle).curr_rotation -= delta_timed_rotation_speed;
-        else
-            (*g_star_castle).curr_rotation += delta_timed_rotation_speed;
-    }
-    else{
-        if((*g_star_castle).target_rotation - (*g_star_castle).curr_rotation < 360 - (*g_star_castle).target_rotation + (*g_star_castle).curr_rotation)
+    if(eucli_module != 0){
+        if(eucli_module < 180)
             (*g_star_castle).curr_rotation += delta_timed_rotation_speed;
         else
             (*g_star_castle).curr_rotation -= delta_timed_rotation_speed;
+        SnapToTarget(dt);
     }
-    if((*g_star_castle).curr_rotation > (*g_star_castle).target_rotation - delta_timed_rotation_speed 
-    && (*g_star_castle).curr_rotation < (*g_star_castle).target_rotation + delta_timed_rotation_speed)
-        (*g_star_castle).curr_rotation = (*g_star_castle).target_rotation;
+    else
+        printf("[DEBUG] CURR: %f TARGET: %f\n", (*g_star_castle).curr_rotation, (*g_star_castle).target_rotation);
+
 }
 
 static void ClampRotation(){
@@ -128,7 +123,12 @@ static void TransformStarCastlePoints(){
     UTL::TransformWorldPoints((*g_star_castle).right_wing_world_points, g_right_wing_local_points, 4, star_castle_scale, (*g_star_castle).curr_rotation, (*g_star_castle).position);
 }
 
+static bool IsShipInRange(){
+
+}
+
 void STCT::Update(const double& dt, esat::Vec2& ship_position){
+    static int count = 0;
     UpdateForward(ship_position);
     UpdateTargetRotation();
     if((*g_star_castle).curr_rotation != (*g_star_castle).target_rotation){
@@ -136,6 +136,9 @@ void STCT::Update(const double& dt, esat::Vec2& ship_position){
         ClampRotation();
         TransformStarCastlePoints();
     }
+    else
+        printf("FUEGO%d\n", count++);
+        //BLT::Fire(BLT::TBulletOwner::kStarCastleBullet, UTL::SumVec2((*g_star_castle).position, UTL::MultVecScalar((*g_star_castle).forward, 20)), (*g_star_castle).forward);
 }
 
 void STCT::Draw(){
@@ -144,6 +147,7 @@ void STCT::Draw(){
     esat::DrawSolidPath(&(*(*g_star_castle).body_world_points).x, 6);
     esat::DrawSolidPath(&(*(*g_star_castle).left_wing_world_points).x, 4);
     esat::DrawSolidPath(&(*(*g_star_castle).right_wing_world_points).x, 4);
+    UTL::DebugPivotPoint((*g_star_castle).position);
 }
 
 void STCT::Free(){

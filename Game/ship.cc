@@ -1,5 +1,3 @@
-//? SHOOT
-
 #include "ship.h"
 
 //!REMOVE AFTER REMOVING DEBUG FUNCTIONS
@@ -16,7 +14,7 @@
 #include "bullet.h"
 
 static bool debug = true;
-static esat::Vec2 *g_ship_base_points = nullptr, *g_ship_cannon_points = nullptr, *g_ship_flame_points = nullptr, debug_pivot[16], debug_local_pivot[16];
+static esat::Vec2 *g_ship_base_points = nullptr, *g_ship_cannon_points = nullptr, *g_ship_flame_points = nullptr;
 
 struct SHP::TShip{
     bool is_propelling, is_rotating_right, is_rotating_left, is_ship_shooting;
@@ -104,14 +102,12 @@ static void TransformShipWorldPoints(SHP::TShip* const ship){
         const esat::Vec2 flames_position = {(*ship).position.x + (*ship).forward.x * flames_displacement, (*ship).position.y + (*ship).forward.y * flames_displacement};
 
         UTL::TransformWorldPoints((*ship).flames_world_points, g_ship_flame_points, flames_vertices, flames_scale, (*ship).rotation, flames_position);
-    }  
-    UTL::TransformWorldPoints(debug_pivot, debug_local_pivot, 16, 3.5f, 0.0f, (*ship).position);
+    }
 }
 
 void SHP::Init(SHP::TShip** ship){
     InitShip(ship);
     InitShipLocalPoints();
-    UTL::InitCircle(debug_local_pivot, 16);
     TransformShipWorldPoints(*ship);
 }
 
@@ -232,17 +228,12 @@ static void DrawFlames(const SHP::TShip* const ship){
     }
 }
 
-static void DebugPivot(){
-    esat::DrawSetFillColor(0, 255, 0);
-    esat::DrawSolidPath(&debug_pivot->x, 16);
-}
-
 void SHP::Draw(const SHP::TShip* const ship){
     esat::DrawSetStrokeColor(0, 0, 255);
     DrawBase((*ship).base_world_points);
     DrawCannon((*ship).cannon_world_points);
     DrawFlames(ship);
-    DebugPivot();
+    UTL::DebugPivotPoint((*ship).position);
 }
 
 void SHP::Free(SHP::TShip** ship){

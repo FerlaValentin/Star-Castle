@@ -6,6 +6,7 @@
 #include <math.h>
 
 #include <esat\math.h>
+#include <esat\draw.h>
 
 #include "config.h"
 
@@ -48,7 +49,7 @@ float UTL::AngleToRadians(float angle){
     return angle * M_PI / 180;
 }
 
-static esat::Mat3 GetTransformationMatrix(float scale, float angle, esat::Vec2 translate){
+static esat::Mat3 GetTransformationMatrix(float scale, float angle, const esat::Vec2& translate){
     esat::Mat3 tmp = esat::Mat3Identity();
 
     tmp = esat::Mat3Multiply(esat::Mat3Scale(scale, scale), tmp);
@@ -58,7 +59,7 @@ static esat::Mat3 GetTransformationMatrix(float scale, float angle, esat::Vec2 t
     return tmp;
 }
 
-void UTL::TransformWorldPoints(esat::Vec2* const world_points, const esat::Vec2* const local_points, const int num_of_points, float scale, float angle, esat::Vec2 translate){
+void UTL::TransformWorldPoints(esat::Vec2* const world_points, const esat::Vec2* const local_points, const int num_of_points, float scale, float angle, const esat::Vec2& translate){
     esat::Mat3 transf_matrix = GetTransformationMatrix(scale, angle, translate);
 
     for(int i = 0; i < num_of_points; ++i)
@@ -125,4 +126,13 @@ esat::Vec2 UTL::GetVectorDirectionFromPoints(const esat::Vec2& destiny, const es
 
 float UTL::RadiansToAngle(float radians){
     return radians * 180 / M_PI;
+}
+
+void UTL::DebugPivotPoint(const esat::Vec2& obj_position){
+    esat::Vec2 pivot_points[16];
+
+    InitCircle(pivot_points, 16);
+    UTL::TransformWorldPoints(pivot_points, pivot_points, 16, 3.5f, 0.0f, obj_position);
+    esat::DrawSetFillColor(0, 255, 0);
+    esat::DrawSolidPath(&pivot_points->x, 16);
 }

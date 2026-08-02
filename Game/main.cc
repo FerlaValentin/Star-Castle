@@ -1,4 +1,4 @@
-//? CHECK WHY STARCASTLE DOESNT SNAP TO SHIP
+//?Pending to move Star Castle pivot point to the center
 #include <stdio.h>
 
 #include <esat\window.h>

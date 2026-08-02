@@ -18,6 +18,7 @@ struct TStarCastle{
     esat::Vec2 position, forward, *body_world_points, *left_wing_world_points, *right_wing_world_points;
 };
 
+static bool debug = false;
 static esat::Vec2 *g_body_local_points, *g_left_wing_local_points, *g_right_wing_local_points;
 static TStarCastle* g_star_castle;
 
@@ -90,7 +91,7 @@ static void SnapToTarget(const double& dt){
     const unsigned char delta_timed_rotation_speed = 200 * dt;
     
     if((*g_star_castle).curr_rotation > (*g_star_castle).target_rotation - delta_timed_rotation_speed 
-    && (*g_star_castle).curr_rotation < (*g_star_castle).target_rotation + delta_timed_rotation_speed){}
+    && (*g_star_castle).curr_rotation < (*g_star_castle).target_rotation + delta_timed_rotation_speed)
         (*g_star_castle).curr_rotation = (*g_star_castle).target_rotation;
 }
 
@@ -103,10 +104,8 @@ static void Rotate(const double& dt){
             (*g_star_castle).curr_rotation += delta_timed_rotation_speed;
         else
             (*g_star_castle).curr_rotation -= delta_timed_rotation_speed;
-        SnapToTarget(dt);
     }
-    else
-        printf("[DEBUG] CURR: %f TARGET: %f\n", (*g_star_castle).curr_rotation, (*g_star_castle).target_rotation);
+    SnapToTarget(dt);
 
 }
 
@@ -136,8 +135,8 @@ void STCT::Update(const double& dt, esat::Vec2& ship_position){
         ClampRotation();
         TransformStarCastlePoints();
     }
-    else
-        printf("FUEGO%d\n", count++);
+    //else
+        //printf("FUEGO%d\n", count++);
         //BLT::Fire(BLT::TBulletOwner::kStarCastleBullet, UTL::SumVec2((*g_star_castle).position, UTL::MultVecScalar((*g_star_castle).forward, 20)), (*g_star_castle).forward);
 }
 

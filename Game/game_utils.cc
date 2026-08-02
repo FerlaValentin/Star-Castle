@@ -83,6 +83,7 @@ esat::Vec2 UTL::NormalizeVector(const esat::Vec2& vec){
     return tmp;
 }
 
+//!REMOVE DEBUG
 void UTL::ScreenWrapObject(esat::Vec2& obj_position, int displacement_offset){
     if(obj_position.x < -displacement_offset)  obj_position.x = CFG::kScreenX + displacement_offset;
     if(obj_position.y < -displacement_offset)  obj_position.y = CFG::kScreenY + displacement_offset;

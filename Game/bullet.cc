@@ -98,7 +98,7 @@ void BLT::Update(const double& dt){
             UpdateTravelledDistance(dt, tmp);
             DeactivateBullet(tmp);
             UTL::ScreenWrapObject((*tmp).position, 0);
-            UTL::TransformWorldPoints((*tmp).world_points, g_local_points, 16, 1.25f, 0.0f, (*tmp).position);
+            UTL::TransformWorldPoints((*tmp).world_points, g_local_points, 16, {0.0f, 0.0f}, 1.25f, 0.0f, (*tmp).position);
         }
         DebugNode(tmp);
         tmp = (*tmp).next_bullet;

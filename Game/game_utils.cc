@@ -49,9 +49,10 @@ float UTL::AngleToRadians(float angle){
     return angle * M_PI / 180;
 }
 
-static esat::Mat3 GetTransformationMatrix(float scale, float angle, const esat::Vec2& translate){
+static esat::Mat3 GetTransformationMatrix(const esat::Vec2& init_translate, float scale, float angle, const esat::Vec2& translate){
     esat::Mat3 tmp = esat::Mat3Identity();
 
+    tmp = esat::Mat3Multiply(esat::Mat3Translate(init_translate.x, init_translate.y), tmp);
     tmp = esat::Mat3Multiply(esat::Mat3Scale(scale, scale), tmp);
     tmp = esat::Mat3Multiply(esat::Mat3Rotate(UTL::AngleToRadians(angle)), tmp);
     tmp = esat::Mat3Multiply(esat::Mat3Translate(translate.x, translate.y), tmp);
@@ -59,8 +60,8 @@ static esat::Mat3 GetTransformationMatrix(float scale, float angle, const esat::
     return tmp;
 }
 
-void UTL::TransformWorldPoints(esat::Vec2* const world_points, const esat::Vec2* const local_points, const int num_of_points, float scale, float angle, const esat::Vec2& translate){
-    esat::Mat3 transf_matrix = GetTransformationMatrix(scale, angle, translate);
+void UTL::TransformWorldPoints(esat::Vec2* const world_points, const esat::Vec2* const local_points, const int num_of_points, const esat::Vec2& init_translate, float scale, float angle, const esat::Vec2& translate){
+    esat::Mat3 transf_matrix = GetTransformationMatrix(init_translate, scale, angle, translate);
 
     for(int i = 0; i < num_of_points; ++i)
         *(world_points + i) = esat::Mat3TransformVec2(transf_matrix, *(local_points + i));
@@ -129,11 +130,11 @@ float UTL::RadiansToAngle(float radians){
     return radians * 180 / M_PI;
 }
 
-void UTL::DebugPivotPoint(const esat::Vec2& obj_position){
+void UTL::DebugPivotPoint(const esat::Vec2& obj_init_tr, const esat::Vec2& obj_position){
     esat::Vec2 pivot_points[16];
 
     InitCircle(pivot_points, 16);
-    UTL::TransformWorldPoints(pivot_points, pivot_points, 16, 3.5f, 0.0f, obj_position);
+    UTL::TransformWorldPoints(pivot_points, pivot_points, 16, obj_init_tr, 3.5f, 0.0f, obj_position);
     esat::DrawSetFillColor(0, 255, 0);
     esat::DrawSolidPath(&pivot_points->x, 16);
 }

@@ -1,4 +1,4 @@
-//?Pending to move Star Castle pivot point to the center
+//?Start collisions modules
 #include <stdio.h>
 
 #include <esat\window.h>

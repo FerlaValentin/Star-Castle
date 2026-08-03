@@ -3,7 +3,7 @@
 
 namespace RNG{
     void Init();
-    void Update();
+    void Update(double dt);
     void Draw();
     void Free();
 }

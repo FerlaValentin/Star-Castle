@@ -54,21 +54,37 @@ void RNG::Init(){
     InitRings();
 }
 
-static void FreeSegments(){
-    for(int i = 0; i < 3; ++i)
-        free((*(g_rings + i)).is_segments_active);
+static void Rotate(double dt, TRing* const ring){
+    const unsigned char angular_velocity = 100;
+
+    switch((*ring).ring_level)
+    {
+    case TRingLevel::kInnerRing:
+    case TRingLevel::kOuterRing:
+        (*ring).rotation -= angular_velocity * dt;
+        if((*ring).rotation <= -360.0f) (*ring).rotation += 360.0f;
+        break;
+    case TRingLevel::kMiddleRing:
+        (*ring).rotation += angular_velocity * dt;
+        if((*ring).rotation >= 360.0f) (*ring).rotation -= 360.0f;
+        break;
+    default:
+        break;
+    }
 }
 
 static void TransformRing(TRing* const ring){
     const float base_scale = 125.0f;
     const float scale_addition = 40.0f;
 
-    UTL::TransformWorldPoints((*ring).segments_points, g_segments_local_points, 12, base_scale + scale_addition * (*ring).ring_level, (*ring).rotation, {CFG::kScreenX/2 + 15, CFG::kScreenY/2 + 10});
+    UTL::TransformWorldPoints((*ring).segments_points, g_segments_local_points, 12, {0.0f, 0.0f}, base_scale + scale_addition * (*ring).ring_level, (*ring).rotation, {CFG::kScreenX/2 - 5, CFG::kScreenY/2});
 }
 
-void RNG::Update(){
-    for(int i = 0; i < 3; ++i)
+void RNG::Update(double dt){
+    for(int i = 0; i < 3; ++i){
+        Rotate(dt, g_rings + i);
         TransformRing(g_rings + i);
+    }
 }
 
 void RNG::Draw(){
@@ -84,6 +100,11 @@ void RNG::Draw(){
                                 (*((*(g_rings + i)).segments_points + ((j + 1) % 12))).x, (*((*(g_rings + i)).segments_points + ((j + 1) % 12))).y);
         }
     }
+}
+
+static void FreeSegments(){
+    for(int i = 0; i < 3; ++i)
+        free((*(g_rings + i)).is_segments_active);
 }
 
 void RNG::Free(){

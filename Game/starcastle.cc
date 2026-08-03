@@ -61,7 +61,7 @@ static void InitStarCastle(){
     g_star_castle = (TStarCastle*)malloc(sizeof(TStarCastle));
     (*g_star_castle).curr_rotation = 0.0f;
     (*g_star_castle).target_rotation = 0.0f;
-    (*g_star_castle).position = {CFG::kScreenX/2 + 40, CFG::kScreenY/2};
+    (*g_star_castle).position = {CFG::kScreenX/2, CFG::kScreenY/2};
     (*g_star_castle).forward = {0.0f, 0.0f};
     (*g_star_castle).body_world_points = (esat::Vec2*)malloc(sizeof(esat::Vec2) * 6);
     (*g_star_castle).left_wing_world_points = (esat::Vec2*)malloc(sizeof(esat::Vec2) * 4);
@@ -117,9 +117,9 @@ static void ClampRotation(){
 static void TransformStarCastlePoints(){
     const char star_castle_scale = 60;
 
-    UTL::TransformWorldPoints((*g_star_castle).body_world_points, g_body_local_points, 6, star_castle_scale, (*g_star_castle).curr_rotation, (*g_star_castle).position);
-    UTL::TransformWorldPoints((*g_star_castle).left_wing_world_points, g_left_wing_local_points, 4, star_castle_scale, (*g_star_castle).curr_rotation, (*g_star_castle).position);
-    UTL::TransformWorldPoints((*g_star_castle).right_wing_world_points, g_right_wing_local_points, 4, star_castle_scale, (*g_star_castle).curr_rotation, (*g_star_castle).position);
+    UTL::TransformWorldPoints((*g_star_castle).body_world_points, g_body_local_points, 6, {-0.3f, 0.0f}, star_castle_scale, (*g_star_castle).curr_rotation, (*g_star_castle).position);
+    UTL::TransformWorldPoints((*g_star_castle).left_wing_world_points, g_left_wing_local_points, 4, {-0.3f, 0.0f}, star_castle_scale, (*g_star_castle).curr_rotation, (*g_star_castle).position);
+    UTL::TransformWorldPoints((*g_star_castle).right_wing_world_points, g_right_wing_local_points, 4, {-0.3f, 0.0f}, star_castle_scale, (*g_star_castle).curr_rotation, (*g_star_castle).position);
 }
 
 static bool IsShipInRange(){
@@ -146,7 +146,7 @@ void STCT::Draw(){
     esat::DrawSolidPath(&(*(*g_star_castle).body_world_points).x, 6);
     esat::DrawSolidPath(&(*(*g_star_castle).left_wing_world_points).x, 4);
     esat::DrawSolidPath(&(*(*g_star_castle).right_wing_world_points).x, 4);
-    UTL::DebugPivotPoint((*g_star_castle).position);
+    UTL::DebugPivotPoint({-0.25f, 0.0f}, (*g_star_castle).position);
 }
 
 void STCT::Free(){

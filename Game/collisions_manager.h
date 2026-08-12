@@ -1,6 +1,0 @@
-#ifndef COLLISIONS_MANAGER_H
-#define COLLISIONS_MANAGER_H
-
-
-
-#endif

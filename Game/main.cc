@@ -1,4 +1,4 @@
-//?Start collisions modules
+//?Pending to finish ring segments position iteration at collision module 
 #include <stdio.h>
 
 #include <esat\window.h>

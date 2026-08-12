@@ -17,6 +17,10 @@ namespace BLT{
     void Draw();
     void Free();
     void Fire(TBulletOwner owner, esat::Vec2 start_position, esat::Vec2 forward);
+    int GetNumOfBullets();
+    bool IsBulletActive(int bullet_index);
+    esat::Vec2 GetBulletPos(int bullet_index);
+    esat::Vec2 GetBulletPreviousPos(int bullet_index);
 }
 
 #endif

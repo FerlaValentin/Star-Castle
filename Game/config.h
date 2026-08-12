@@ -2,6 +2,7 @@
 #define CONFIG_H
 
 namespace CFG{
+    constexpr unsigned char kNumRings = 3, kSegmentsPerRing = 12;
     const unsigned short kScreenX = 1200, kScreenY = 900;
 }
 

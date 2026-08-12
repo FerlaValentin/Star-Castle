@@ -13,7 +13,7 @@
 struct TBullet{
     BLT::TBulletOwner bullet_owner;
     float travelled_distance;
-    esat::Vec2 position, forward, *world_points;
+    esat::Vec2 position, prev_position, forward, *world_points;
     TBullet* next_bullet;
 };
 
@@ -26,6 +26,7 @@ static void AddBulletsList(BLT::TBulletOwner bullet_owner, const esat::Vec2 star
     (*tmp).bullet_owner = bullet_owner;
     (*tmp).travelled_distance = 0.0f;
     (*tmp).position = start_position;
+    (*tmp).prev_position = start_position;
     (*tmp).forward = forward;
     (*tmp).world_points = (esat::Vec2*)malloc(sizeof(esat::Vec2) * 16);
     (*tmp).next_bullet = g_bullets;
@@ -47,6 +48,7 @@ void BLT::Init(){
 static void Move(const double& dt, TBullet* const tmp){
     const short bullet_speed = 1450;
     
+    (*tmp).prev_position = (*tmp).position;
     (*tmp).position.x += (*tmp).forward.x * bullet_speed * dt;
     (*tmp).position.y += (*tmp).forward.y * bullet_speed * dt;
 }
@@ -146,6 +148,7 @@ static TBullet* FindInactiveBullet(){
 static void ReuseExistingBullet(TBullet* const inactive_bullet, BLT::TBulletOwner bullet_owner, esat::Vec2& start_position, esat::Vec2& forward){
     (*inactive_bullet).bullet_owner = bullet_owner;
     (*inactive_bullet).position = start_position;
+    (*inactive_bullet).prev_position = start_position;
     (*inactive_bullet).forward = forward;
     (*inactive_bullet).travelled_distance = 0.0f;
 }
@@ -157,4 +160,43 @@ void BLT::Fire(BLT::TBulletOwner bullet_owner, esat::Vec2 start_position, esat::
         ReuseExistingBullet(tmp, bullet_owner, start_position, forward);
     else
         AddBulletsList(bullet_owner, start_position, forward);
+}
+
+int BLT::GetNumOfBullets(){
+    unsigned char bullets_counter = 0;
+    TBullet* tmp = g_bullets;
+
+    while(tmp != nullptr){
+        bullets_counter++;
+        tmp = tmp->next_bullet;
+    }
+
+    return bullets_counter;
+}
+
+bool BLT::IsBulletActive(int bullet_index){
+    TBullet* tmp = g_bullets;
+
+    for(int i = 0; i < bullet_index; ++i)
+        tmp = tmp->next_bullet;
+
+    return (*tmp).bullet_owner != BLT::TBulletOwner::kNone;
+}
+
+esat::Vec2 BLT::GetBulletPos(int bullet_index){
+    TBullet* tmp = g_bullets;
+
+    for(int i = 0; i < bullet_index; ++i)
+        tmp = tmp->next_bullet;
+
+    return (*tmp).position;
+}
+
+esat::Vec2 BLT::GetBulletPreviousPos(int bullet_index){
+    TBullet* tmp = g_bullets;
+
+    for(int i = 0; i < bullet_index; ++i)
+        tmp = tmp->next_bullet;
+
+    return (*tmp).prev_position;
 }

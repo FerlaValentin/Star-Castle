@@ -1,4 +1,4 @@
-//?Pending to finish ring segments position iteration at collision module 
+//?Pending to finish end segment point formula getter
 #include <stdio.h>
 
 #include <esat\window.h>

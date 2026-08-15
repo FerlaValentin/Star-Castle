@@ -9,25 +9,26 @@
 #include "ring.h"
 #include "jonathan.h"
 
-static bool DoesPointCollidePolygon(esat::Vec2 point_pos, esat::Vec2 point_prev_pos, esat::Vec2* polygon_points, int num_of_vertices){
+static bool DoesPointCollideSegment(esat::Vec2 point_pos, esat::Vec2 point_prev_pos, esat::Vec2 segment_start_point, esat::Vec2 segment_end_point){
     bool does_collide = false;
     esat::Vec2 point_displacement = {point_pos.x - point_prev_pos.x, point_pos.y - point_prev_pos.y};
+    esat::Vec2 polygon_segment = {segment_end_point.x - segment_start_point.x, segment_end_point.y - segment_start_point.y};
+    esat::Vec2 res = JMN::CalcInterpolation(point_pos, point_displacement, segment_start_point, polygon_segment);
 
-    for(int i = 0; i < num_of_vertices; ++i){
-        esat::Vec2 polygon_point = *(polygon_points + i);
-        esat::Vec2 polygon_segment = 
-    }
+    if(res.x >= 0 && res.x <= 1 && res.y >= 0 && res.y <= 1)    does_collide = true;
+
+    return does_collide;
 } 
 
 static void CheckBulletSegmentCollision(int num_of_bullets){
     for(int i = 0; i < num_of_bullets; ++i){
         if(BLT::IsBulletActive(i)){
-            esat::Vec2 bullet_pos = BLT::GetBulletPos(i);
-            esat::Vec2 bullet_prev_pos = BLT::GetBulletPreviousPos(i);
-            for(int j = 0; j < CFG::kNumRings * CFG::kSegmentsPerRing; ++j){
-                esat::Vec2* segment_start_point = RNG::GetSegmentStartPointer(j);
+            esat::Vec2 bullet_pos = BLT::GetBulletPos(i), bullet_prev_pos = BLT::GetBulletPreviousPos(i);
 
-                if(DoesPointCollidePolygon(bullet_pos, bullet_prev_pos, segment_start_point, 1)){
+            for(int j = 0; j < CFG::kNumRings * CFG::kSegmentsPerRing; ++j){
+                esat::Vec2 segment_start_point = RNG::GetSegmentPointer(j), segment_end_point = RNG::GetSegmentPointer();
+
+                if(DoesPointCollideSegment(bullet_pos, bullet_prev_pos, segment_start_point, segment_end_point)){
                     printf("DEACTIVE BULLET\n");
                     printf("DEACTIVE SEGMENT\n");
                 }

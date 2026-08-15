@@ -119,8 +119,8 @@ bool RNG::IsSegmentActive(int segment_index){
     return *((*tmp).is_segments_active + segment_index);
 }
 
-esat::Vec2* RNG::GetSegmentStartPointer(int segment_index){
+esat::Vec2 RNG::GetSegmentPointer(int segment_index){
     TRing* tmp = g_rings + segment_index / CFG::kSegmentsPerRing;
 
-    return (*tmp).segments_points + segment_index;
+    return *((*tmp).segments_points + segment_index);
 }

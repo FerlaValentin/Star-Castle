@@ -5,7 +5,7 @@ namespace COL{
     struct TBullet;
     struct TRing;
 
-    void Update(int num_of_bullets);
+    void Update();
 }
 
 #endif

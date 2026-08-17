@@ -80,10 +80,25 @@ static void TransformRing(TRing* const ring){
     UTL::TransformWorldPoints((*ring).segments_points, g_segments_local_points, CFG::kSegmentsPerRing, {0.0f, 0.0f}, base_scale + scale_addition * (*ring).ring_level, (*ring).rotation, {CFG::kScreenX/2 - 5, CFG::kScreenY/2});
 }
 
+static bool IsRingDestroyed(TRing* const ring){
+    bool is_ring_destroyed = true;
+    for(int i = 0; i < CFG::kSegmentsPerRing && is_ring_destroyed; ++i){
+        if(*((*ring).is_segments_active + i))   is_ring_destroyed = false;
+    }
+
+    return is_ring_destroyed;
+}
+
+static void ResetRing(TRing* const ring){
+    for(int i = 0; i < CFG::kSegmentsPerRing; ++i)
+        *((*ring).is_segments_active + i) = true;
+}
+
 void RNG::Update(double dt){
     for(int i = 0; i < CFG::kNumRings; ++i){
         Rotate(dt, g_rings + i);
         TransformRing(g_rings + i);
+        if(IsRingDestroyed(g_rings + i)) ResetRing(g_rings + i);
     }
 }
 
@@ -116,11 +131,17 @@ void RNG::Free(){
 bool RNG::IsSegmentActive(int segment_index){
     TRing* tmp = g_rings + segment_index / CFG::kSegmentsPerRing;
 
-    return *((*tmp).is_segments_active + segment_index);
+    return *((*tmp).is_segments_active + (segment_index % 12));
 }
 
 esat::Vec2 RNG::GetSegmentPointer(int segment_index){
     TRing* tmp = g_rings + segment_index / CFG::kSegmentsPerRing;
 
-    return *((*tmp).segments_points + segment_index);
+    return *((*tmp).segments_points + (segment_index % 12));
+}
+
+void RNG::DeactivateSegment(int segment_index){
+    TRing* tmp = g_rings + segment_index / CFG::kSegmentsPerRing;
+
+    *((*tmp).is_segments_active + (segment_index % 12)) = false;
 }

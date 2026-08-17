@@ -22,11 +22,11 @@ void GAME::GetInput(){
 }
 
 void GAME::Update(const double& dt){
+    COL::Update();
     SHP::Update(g_ship, dt);
     STCT::Update(dt, SHP::GetPosition(g_ship));
     RNG::Update(dt);
     BLT::Update(dt);
-    COL::Update(BLT::GetNumOfBullets());
 }
 
 void GAME::Draw(){

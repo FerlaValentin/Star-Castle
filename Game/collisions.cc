@@ -20,23 +20,28 @@ static bool DoesPointCollideSegment(esat::Vec2 point_pos, esat::Vec2 point_prev_
     return does_collide;
 } 
 
-static void CheckBulletSegmentCollision(int num_of_bullets){
+static void CheckBulletSegmentCollision(){
+    int num_of_bullets = BLT::GetNumOfBullets();
     for(int i = 0; i < num_of_bullets; ++i){
         if(BLT::IsBulletActive(i)){
+            bool has_this_bullet_collided = false;
             esat::Vec2 bullet_pos = BLT::GetBulletPos(i), bullet_prev_pos = BLT::GetBulletPreviousPos(i);
 
-            for(int j = 0; j < CFG::kNumRings * CFG::kSegmentsPerRing; ++j){
-                esat::Vec2 segment_start_point = RNG::GetSegmentPointer(j), segment_end_point = RNG::GetSegmentPointer();
+            for(int j = 0; j < CFG::kNumRings * CFG::kSegmentsPerRing && has_this_bullet_collided == false; ++j){
+                if(RNG::IsSegmentActive(j)){
+                    esat::Vec2 segment_start_point = RNG::GetSegmentPointer(j), segment_end_point = RNG::GetSegmentPointer(j / CFG::kSegmentsPerRing * CFG::kSegmentsPerRing + ((j + 1) % CFG::kSegmentsPerRing));
 
-                if(DoesPointCollideSegment(bullet_pos, bullet_prev_pos, segment_start_point, segment_end_point)){
-                    printf("DEACTIVE BULLET\n");
-                    printf("DEACTIVE SEGMENT\n");
+                    if(DoesPointCollideSegment(bullet_pos, bullet_prev_pos, segment_start_point, segment_end_point)){
+                        has_this_bullet_collided = true;
+                        BLT::DeactivateBullet(BLT::GetBullet(i));
+                        RNG::DeactivateSegment(j);
+                    }
                 }
             }
         }
     }
 }
 
-void COL::Update(int num_of_bullets){
-    CheckBulletSegmentCollision(num_of_bullets);
+void COL::Update(){
+    CheckBulletSegmentCollision();
 }

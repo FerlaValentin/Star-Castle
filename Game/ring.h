@@ -13,6 +13,7 @@ namespace RNG{
     int GetNumOfSegments();
     bool IsSegmentActive(int segment_index);
     esat::Vec2 GetSegmentPointer(int segment_index);
+    void DeactivateSegment(int segment_index);
 }
 
 #endif

@@ -11,6 +11,7 @@ namespace BLT{
         kStarCastleBullet,
         kNone
     };
+    struct TBullet;
 
     void Init();
     void Update(const double& dt);
@@ -21,6 +22,8 @@ namespace BLT{
     bool IsBulletActive(int bullet_index);
     esat::Vec2 GetBulletPos(int bullet_index);
     esat::Vec2 GetBulletPreviousPos(int bullet_index);
+    void DeactivateBullet(TBullet* const tmp);
+    TBullet* GetBullet(int bullet_index);
 }
 
 #endif

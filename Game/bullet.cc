@@ -10,19 +10,19 @@
 
 #include "game_utils.h"
 
-struct TBullet{
+struct BLT::TBullet{
     BLT::TBulletOwner bullet_owner;
     float travelled_distance;
     esat::Vec2 position, prev_position, forward, *world_points;
-    TBullet* next_bullet;
+    BLT::TBullet* next_bullet;
 };
 
 static bool debug = false;
 static esat::Vec2 *g_local_points = nullptr;
-static TBullet* g_bullets = nullptr;
+static BLT::TBullet* g_bullets = nullptr;
 
 static void AddBulletsList(BLT::TBulletOwner bullet_owner, const esat::Vec2 start_position, const esat::Vec2 forward){
-    TBullet* tmp = (TBullet*)malloc(sizeof(TBullet));
+    BLT::TBullet* tmp = (BLT::TBullet*)malloc(sizeof(BLT::TBullet));
     (*tmp).bullet_owner = bullet_owner;
     (*tmp).travelled_distance = 0.0f;
     (*tmp).position = start_position;
@@ -45,7 +45,7 @@ void BLT::Init(){
     InitLocalPoints();
 }
 
-static void Move(const double& dt, TBullet* const tmp){
+static void Move(const double& dt, BLT::TBullet* const tmp){
     const short bullet_speed = 1450;
     
     (*tmp).prev_position = (*tmp).position;
@@ -53,23 +53,18 @@ static void Move(const double& dt, TBullet* const tmp){
     (*tmp).position.y += (*tmp).forward.y * bullet_speed * dt;
 }
 
-static void UpdateTravelledDistance(const double& dt, TBullet* const tmp){
-    const short bullet_speed = 1450;
+static void UpdateTravelledDistance(const double& dt, BLT::TBullet* const tmp){
+    const short bullet_speed = 1450, max_distance = 700;
     
     (*tmp).travelled_distance += bullet_speed * dt;
-}
-
-static void DeactivateBullet(TBullet* const tmp){
-    const short max_distance = 900;
-
-    if((*tmp).travelled_distance > max_distance) (*tmp).bullet_owner = BLT::TBulletOwner::kNone;
+    if((*tmp).travelled_distance > max_distance) BLT::DeactivateBullet(tmp);
 }
 
 static void ActivateDebug(){
     if(debug == false) debug = esat::IsKeyDown('K') || esat::IsKeyDown('k');
 }
 
-static void DebugNode(const TBullet* const tmp){
+static void DebugNode(const BLT::TBullet* const tmp){
     if(debug){
         static int node_counter = 0;
 
@@ -91,16 +86,17 @@ static void DebugNode(const TBullet* const tmp){
 }
 
 void BLT::Update(const double& dt){
-    TBullet* tmp = g_bullets;
+    BLT::TBullet* tmp = g_bullets;
 
     ActivateDebug();
     while(tmp != nullptr){
         if((*tmp).bullet_owner != BLT::TBulletOwner::kNone){
             Move(dt, tmp);
             UpdateTravelledDistance(dt, tmp);
-            DeactivateBullet(tmp);
-            UTL::ScreenWrapObject((*tmp).position, 0);
-            UTL::TransformWorldPoints((*tmp).world_points, g_local_points, 16, {0.0f, 0.0f}, 1.25f, 0.0f, (*tmp).position);
+            if((*tmp).bullet_owner != BLT::TBulletOwner::kNone){
+                UTL::ScreenWrapObject((*tmp).position, 0);
+                UTL::TransformWorldPoints((*tmp).world_points, g_local_points, 16, {0.0f, 0.0f}, 1.25f, 0.0f, (*tmp).position);
+            }
         }
         DebugNode(tmp);
         tmp = (*tmp).next_bullet;
@@ -108,7 +104,7 @@ void BLT::Update(const double& dt){
 }
 
 void BLT::Draw(){
-    TBullet* tmp = g_bullets;
+    BLT::TBullet* tmp = g_bullets;
 
     esat::DrawSetFillColor(255,255,255);
     while(tmp != nullptr){
@@ -119,7 +115,7 @@ void BLT::Draw(){
 
 static void FreeBulletsList(){
     while(g_bullets != nullptr){
-        TBullet* tmp = g_bullets;
+        BLT::TBullet* tmp = g_bullets;
         
         g_bullets = (*g_bullets).next_bullet;
         free(tmp);
@@ -136,8 +132,8 @@ void BLT::Free(){
     FreeLocalPoints();
 }
 
-static TBullet* FindInactiveBullet(){
-    TBullet* tmp = g_bullets;
+static BLT::TBullet* FindInactiveBullet(){
+    BLT::TBullet* tmp = g_bullets;
 
     while(tmp != nullptr && (*tmp).bullet_owner != BLT::TBulletOwner::kNone)
         tmp = (*tmp).next_bullet;
@@ -145,7 +141,7 @@ static TBullet* FindInactiveBullet(){
     return tmp;
 }
 
-static void ReuseExistingBullet(TBullet* const inactive_bullet, BLT::TBulletOwner bullet_owner, esat::Vec2& start_position, esat::Vec2& forward){
+static void ReuseExistingBullet(BLT::TBullet* const inactive_bullet, BLT::TBulletOwner bullet_owner, esat::Vec2& start_position, esat::Vec2& forward){
     (*inactive_bullet).bullet_owner = bullet_owner;
     (*inactive_bullet).position = start_position;
     (*inactive_bullet).prev_position = start_position;
@@ -154,7 +150,7 @@ static void ReuseExistingBullet(TBullet* const inactive_bullet, BLT::TBulletOwne
 }
 
 void BLT::Fire(BLT::TBulletOwner bullet_owner, esat::Vec2 start_position, esat::Vec2 forward){
-    TBullet* tmp = FindInactiveBullet();
+    BLT::TBullet* tmp = FindInactiveBullet();
 
     if(tmp != nullptr)
         ReuseExistingBullet(tmp, bullet_owner, start_position, forward);
@@ -164,7 +160,7 @@ void BLT::Fire(BLT::TBulletOwner bullet_owner, esat::Vec2 start_position, esat::
 
 int BLT::GetNumOfBullets(){
     unsigned char bullets_counter = 0;
-    TBullet* tmp = g_bullets;
+    BLT::TBullet* tmp = g_bullets;
 
     while(tmp != nullptr){
         bullets_counter++;
@@ -174,29 +170,27 @@ int BLT::GetNumOfBullets(){
     return bullets_counter;
 }
 
-bool BLT::IsBulletActive(int bullet_index){
-    TBullet* tmp = g_bullets;
+BLT::TBullet* BLT::GetBullet(int bullet_index){
+    BLT::TBullet* tmp = g_bullets;
 
     for(int i = 0; i < bullet_index; ++i)
         tmp = tmp->next_bullet;
 
-    return (*tmp).bullet_owner != BLT::TBulletOwner::kNone;
+    return tmp;
+}
+
+bool BLT::IsBulletActive(int bullet_index){
+    return (*BLT::GetBullet(bullet_index)).bullet_owner != BLT::TBulletOwner::kNone;
 }
 
 esat::Vec2 BLT::GetBulletPos(int bullet_index){
-    TBullet* tmp = g_bullets;
-
-    for(int i = 0; i < bullet_index; ++i)
-        tmp = tmp->next_bullet;
-
-    return (*tmp).position;
+    return (*BLT::GetBullet(bullet_index)).position;
 }
 
 esat::Vec2 BLT::GetBulletPreviousPos(int bullet_index){
-    TBullet* tmp = g_bullets;
+    return (*BLT::GetBullet(bullet_index)).prev_position;
+}
 
-    for(int i = 0; i < bullet_index; ++i)
-        tmp = tmp->next_bullet;
-
-    return (*tmp).prev_position;
+void BLT::DeactivateBullet(BLT::TBullet* const tmp){
+    (*tmp).bullet_owner = BLT::TBulletOwner::kNone;
 }

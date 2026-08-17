@@ -1,4 +1,4 @@
-//?Pending to finish end segment point formula getter
+//?Fix collisions. Some inner segments are detected upon still active outer segments
 #include <stdio.h>
 
 #include <esat\window.h>
